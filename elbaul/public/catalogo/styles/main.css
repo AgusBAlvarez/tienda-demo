@@ -1,0 +1,234 @@
+/* ===== VARIABLES ===== */
+:root {
+  --primary: #C3977E;
+  --primary-dark: #a87d64;
+  --bg: #FFFDFC;
+  --text: #3a2e26;
+  --text-light: #7a6a5f;
+  --card-bg: #f5ede7;
+  --border: #eee;
+}
+
+/* ===== RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+/* ===== NAVBAR ===== */
+nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 5%;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  flex-shrink: 0;
+}
+
+.logo img {
+  height: 30px;
+  width: auto;
+  display: block;
+}
+
+.buscador {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--card-bg);
+  border-radius: 50px;
+  padding: 0.3rem 0.7rem;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.buscador input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.85rem;
+  color: var(--text);
+  min-width: 0;
+}
+
+.buscador button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.carrito,
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* ===== MENÚ LATERAL ===== */
+.menu-lateral {
+  position: fixed;
+  top: 0;
+  left: -260px;
+  width: 240px;
+  height: 100vh;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem;
+  transition: left 0.3s ease;
+  z-index: 200;
+}
+
+.menu-lateral.active {
+  left: 0;
+}
+
+.menu-lateral .cerrar {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--primary);
+  cursor: pointer;
+  margin-bottom: 2rem;
+}
+
+.menu-lateral ul {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.menu-lateral a {
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.menu-lateral a:hover {
+  color: var(--primary);
+}
+
+/* ===== OVERLAY ===== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+  z-index: 150;
+}
+
+.overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ===== BANNER ===== */
+.banner {
+  padding: 0.8rem 5%;
+}
+
+.banner-img {
+  width: 100%;
+  height: 140px;
+  background: #e6e6e6;
+  border-radius: 12px;
+}
+
+/* ===== CATEGORÍAS ===== */
+.categorias {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--primary);
+  padding: 0.8rem 5%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.categorias::-webkit-scrollbar {
+  display: none;
+}
+
+.categoria {
+  background: white;
+  color: var(--primary);
+  border: none;
+  border-radius: 50px;
+  padding: 0.45rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.categoria:hover {
+  transform: translateY(-1px);
+}
+
+.categoria.active {
+  background: var(--text);
+  color: white;
+}
+
+/* ===== PRODUCTOS ===== */
+.productos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+  padding: 0 5% 2rem;
+}
+
+/* ===== FOOTER ===== */
+footer {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ===== ESCRITORIO ===== */
+@media (min-width: 768px) {
+  .logo img {
+    height: 40px;
+  }
+
+  .banner-img {
+    height: 260px;
+  }
+
+  .productos {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+}

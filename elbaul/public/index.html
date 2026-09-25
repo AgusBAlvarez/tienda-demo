@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Prueba Firestore</title>
+</head>
+<body>
+  <h1>Productos desde Firestore</h1>
+  <ul id="lista-productos"></ul>
+
+  <script type="module">
+    import { db } from "./shared/firebase-config.js";
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    async function cargarProductos() {
+      const lista = document.getElementById("lista-productos");
+      try {
+        const snapshot = await getDocs(collection(db, "productos"));
+        if (snapshot.empty) {
+          lista.innerHTML = "<li>No hay productos todavía</li>";
+          return;
+        }
+        snapshot.forEach(doc => {
+          const p = doc.data();
+          const li = document.createElement("li");
+          li.textContent = `${p.nombre} — $${p.precio} — stock: ${p.stock}`;
+          lista.appendChild(li);
+        });
+      } catch (error) {
+        lista.innerHTML = `<li>Error: ${error.message}</li>`;
+        console.error(error);
+      }
+    }
+
+    cargarProductos();
+  </script>
+</body>
+</html>
