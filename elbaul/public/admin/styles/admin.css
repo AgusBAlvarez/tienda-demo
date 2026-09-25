@@ -196,3 +196,149 @@ body.admin-page {
 .header-con-accion h1 {
   margin: 0;
 }
+
+/* ===== PANEL LATERAL (formulario) ===== */
+.panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+  z-index: 100;
+}
+
+.panel-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.panel-lateral {
+  position: fixed;
+  top: 0;
+  right: -480px;
+  width: 480px;
+  height: 100vh;
+  background: white;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+  transition: right 0.3s ease;
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-lateral.active {
+  right: 0;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.panel-cerrar {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #7a6a5f;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.panel-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+}
+
+/* ===== FORMULARIO ===== */
+.form-grupo {
+  margin-bottom: 1.2rem;
+}
+
+.form-grupo label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3a2e26;
+  margin-bottom: 0.4rem;
+}
+
+.form-grupo input,
+.form-grupo select {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid #e0d5cc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: white;
+  color: #3a2e26;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-grupo input:focus,
+.form-grupo select:focus {
+  border-color: #C3977E;
+}
+
+.form-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.btn-secundario {
+  background: white;
+  color: #7a6a5f;
+  border: 1.5px solid #e0d5cc;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-secundario:hover {
+  background: #f5ede7;
+}
+
+.btn-editar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.btn-editar:hover {
+  background: #f5ede7;
+}
+
+.form-error {
+  color: #c0392b;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  min-height: 1.2em;
+}
