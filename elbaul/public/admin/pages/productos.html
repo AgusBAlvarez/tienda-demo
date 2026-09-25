@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productos — El Baul de Maribel</title>
+
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../styles/admin.css">
+</head>
+<body class="admin-page">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="admin-sidebar">
+    <div class="logo">
+      <img src="../assets/logo.png" alt="El Baul de Maribel">
+      <span>Panel Admin</span>
+    </div>
+    <nav>
+      <a href="./dashboard.html">Dashboard</a>
+      <a href="./productos.html" class="active">Productos</a>
+      <a href="./ventas.html">Registrar venta</a>
+      <a href="./historial.html">Historial</a>
+    </nav>
+  </aside>
+
+  <!-- ===== HEADER ===== -->
+  <header class="admin-header">
+    <span class="user">Conectada como <strong id="userEmail"></strong></span>
+    <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main class="admin-main">
+    <div class="header-con-accion">
+      <h1>Productos</h1>
+      <button class="btn-primary">+ Agregar producto</button>
+    </div>
+
+    <table class="tabla-productos">
+      <thead>
+        <tr>
+          <th>Foto</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaBody">
+        <tr>
+          <td colspan="7" style="text-align:center; padding:2rem; color:#7a6a5f;">
+            Cargando productos...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+  <script type="module" src="../js/productos.js"></script>
+</body>
+</html>

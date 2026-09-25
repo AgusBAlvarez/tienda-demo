@@ -1,0 +1,198 @@
+/* ===== LAYOUT ADMIN ===== */
+body.admin-page {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 60px 1fr;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
+  min-height: 100vh;
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #FFFDFC;
+  color: #3a2e26;
+}
+
+/* ===== SIDEBAR ===== */
+.admin-sidebar {
+  grid-area: sidebar;
+  background: #C3977E;
+  color: white;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-sidebar .logo {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.admin-sidebar .logo img {
+  height: 35px;
+  width: auto;
+}
+
+.admin-sidebar .logo span {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.admin-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.admin-sidebar nav a {
+  color: white;
+  text-decoration: none;
+  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.admin-sidebar nav a:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.admin-sidebar nav a.active {
+  background: rgba(255,255,255,0.25);
+  font-weight: 600;
+}
+
+/* ===== HEADER ===== */
+.admin-header {
+  grid-area: header;
+  background: white;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.admin-header .user {
+  font-size: 0.85rem;
+  color: #7a6a5f;
+}
+
+.admin-header .btn-logout {
+  background: #C3977E;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.admin-header .btn-logout:hover {
+  background: #a87d64;
+}
+
+/* ===== MAIN ===== */
+.admin-main {
+  grid-area: main;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.admin-main h1 {
+  font-size: 1.5rem;
+  margin: 0 0 1.5rem;
+}
+
+/* ===== TABLA PRODUCTOS ===== */
+.tabla-productos {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.tabla-productos th {
+  background: #f5ede7;
+  text-align: left;
+  padding: 0.9rem 1rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7a6a5f;
+  font-weight: 600;
+}
+
+.tabla-productos td {
+  padding: 0.9rem 1rem;
+  border-top: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.tabla-productos .foto {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  background: #f5ede7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  object-fit: cover;
+}
+
+.tabla-productos .foto img {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* ===== BADGES DE ESTADO ===== */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge.activo    { background: #d4edda; color: #155724; }
+.badge.borrador  { background: #fff3cd; color: #856404; }
+.badge.inactivo  { background: #f8d7da; color: #721c24; }
+
+/* ===== BOTÓN PRIMARIO ===== */
+.btn-primary {
+  background: #C3977E;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #a87d64;
+}
+
+.header-con-accion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.header-con-accion h1 {
+  margin: 0;
+}
