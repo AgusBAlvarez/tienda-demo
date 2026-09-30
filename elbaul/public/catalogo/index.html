@@ -100,22 +100,39 @@
     <!-- ===== MODAL CARRITO ===== -->
   <div class="modal-carrito-overlay" id="carritoOverlay"></div>
 
-  <div class="modal-carrito" id="modalCarrito">
-    <div class="carrito-header">
-      <h2>Tu pedido</h2>
-      <button class="carrito-cerrar" id="carritoCerrar" aria-label="Cerrar">✕</button>
-    </div>
-
-    <div class="carrito-body" id="carritoBody">
-      <!-- Se llena dinámicamente -->
-    </div>
-
-  <div class="carrito-footer" id="carritoFooter">
-      <div class="carrito-total">
-        <span>Total:</span>
-        <strong id="carritoTotal">$0</strong>
+    <div class="modal-carrito" id="modalCarrito">
+    <!-- VISTA 1: CARRITO -->
+    <div id="vistaCarrito">
+      <div class="carrito-header">
+        <h2>Tu pedido</h2>
+        <button class="carrito-cerrar" id="carritoCerrar" aria-label="Cerrar">✕</button>
       </div>
-      <button class="btn-finalizar" id="btnFinalizar">Finalizar pedido</button>
+      <div class="carrito-body" id="carritoBody"></div>
+      <div class="carrito-footer" id="carritoFooter">
+        <div class="carrito-total">
+          <span>Total:</span>
+          <strong id="carritoTotal">$0</strong>
+        </div>
+        <button class="btn-finalizar" id="btnFinalizar">Finalizar pedido</button>
+      </div>
+    </div>
+
+    <!-- VISTA 2: PEDIDO FINALIZADO -->
+    <div id="vistaFinalizado" style="display:none;">
+      <div class="carrito-header">
+        <h2>¡Pedido listo!</h2>
+        <button class="carrito-cerrar" id="carritoCerrarFinal" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="carrito-body">
+        <div class="pedido-finalizado">
+          <p>Tu código de pedido es:</p>
+          <div class="codigo-grande" id="codigoPedido">#XXXX</div>
+          <p class="pedido-instruccion">Enviá este mensaje por WhatsApp para coordinar el pago y la entrega.</p>
+        </div>
+      </div>
+      <div class="carrito-footer">
+        <button class="btn-whatsapp" id="btnWhatsApp">Enviar por WhatsApp</button>
+      </div>
     </div>
   </div>
 

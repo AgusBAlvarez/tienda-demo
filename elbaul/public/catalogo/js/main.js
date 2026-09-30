@@ -1,7 +1,7 @@
 /* ===== IMPORTS ===== */
 import { db } from "../../shared/firebase-config.js";
 import {
-  collection, getDocs, query, where
+  collection, getDocs, query, where, addDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 /* ===== ESTADO GLOBAL ===== */
@@ -11,6 +11,7 @@ let textoBusqueda = "";
 let carrito = [];
 let productoActual = null;
 let cantidadActual = 1;
+let pedidoFinalizado = null; // { codigo, items, total }
 
 /* ===== MENÚ LATERAL ===== */
 const menuBtn = document.querySelector(".menu-btn");
@@ -296,7 +297,9 @@ confirmOverlay.addEventListener("click", cerrarModalConfirmacion);
 
 btnVerCarrito.addEventListener("click", () => {
   cerrarModalConfirmacion();
-  abrirModalCarrito();
+  setTimeout(() => {
+    abrirModalCarrito();
+  }, 100);
 });
 
 /* ===== MODAL CARRITO ===== */
@@ -310,6 +313,7 @@ const btnFinalizar = document.getElementById("btnFinalizar");
 const btnCarrito = document.getElementById("btnCarrito");
 
 function abrirModalCarrito() {
+  resetearVistaCarrito();
   renderCarrito();
   carritoOverlay.classList.add("active");
   modalCarrito.classList.add("active");
@@ -318,6 +322,7 @@ function abrirModalCarrito() {
 function cerrarModalCarrito() {
   carritoOverlay.classList.remove("active");
   modalCarrito.classList.remove("active");
+  resetearVistaCarrito();
 }
 
 btnCarrito.addEventListener("click", abrirModalCarrito);
@@ -402,10 +407,105 @@ function actualizarContadorCarrito() {
   }
 }
 
-/* ===== BOTÓN FINALIZAR (placeholder K8) ===== */
-btnFinalizar.addEventListener("click", () => {
-  mostrarToast("El código de pedido se genera en el siguiente paso");
+/* ===== GENERAR CÓDIGO ÚNICO ===== */
+const ALFABETO = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+
+function generarCodigo() {
+  let codigo = "";
+  for (let i = 0; i < 4; i++) {
+    codigo += ALFABETO[Math.floor(Math.random() * ALFABETO.length)];
+  }
+  return codigo;
+}
+
+async function generarCodigoUnico() {
+  let intentos = 0;
+  while (intentos < 10) {
+    const codigo = generarCodigo();
+    const q = query(collection(db, "pedidos"), where("codigo", "==", codigo));
+    const snap = await getDocs(q);
+    if (snap.empty) return codigo;
+    intentos++;
+  }
+  // Fallback: 5 caracteres
+  return generarCodigo() + generarCodigo()[0];
+}
+
+/* ===== FINALIZAR PEDIDO ===== */
+btnFinalizar.addEventListener("click", async () => {
+  if (carrito.length === 0) return;
+  if (pedidoFinalizado) return;
+
+  btnFinalizar.disabled = true;
+  btnFinalizar.textContent = "Generando pedido...";
+
+  try {
+    const codigo = await generarCodigoUnico();
+    const total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+
+    // Guardar en Firestore
+    await addDoc(collection(db, "pedidos"), {
+      codigo,
+      fecha: serverTimestamp(),
+      items: carrito.map(item => ({
+        productoId: item.productoId,
+        nombre: item.nombre,
+        cantidad: item.cantidad,
+        precioCongelado: item.precio
+      })),
+      total,
+      estado: "pendiente"
+    });
+
+    pedidoFinalizado = { codigo, items: [...carrito], total };
+
+    // Mostrar vista finalizada
+    document.getElementById("vistaCarrito").style.display = "none";
+    document.getElementById("vistaFinalizado").style.display = "block";
+    document.getElementById("codigoPedido").textContent = `#${codigo}`;
+
+    // Vaciar carrito (ya está en el pedido)
+    carrito = [];
+    actualizarContadorCarrito();
+
+  } catch (error) {
+    console.error(error);
+    mostrarToast("Error al generar el pedido");
+    btnFinalizar.disabled = false;
+    btnFinalizar.textContent = "Finalizar pedido";
+  }
 });
+
+/* ===== ENVIAR POR WHATSAPP ===== */
+document.getElementById("btnWhatsApp").addEventListener("click", () => {
+  if (!pedidoFinalizado) return;
+
+  const { codigo, items, total } = pedidoFinalizado;
+
+  let mensaje = `#${codigo}\n\nHola, quiero hacer este pedido:\n`;
+  items.forEach(item => {
+    mensaje += `- ${item.cantidad}x ${item.nombre}\n`;
+  });
+  mensaje += `\nTotal: $${total.toLocaleString("es-AR")}`;
+
+  const numero = "5492616946182"; // ← tu número
+  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+  window.open(url, "_blank");
+});
+
+/* ===== CERRAR MODAL DESDE VISTA FINALIZADA ===== */
+document.getElementById("carritoCerrarFinal").addEventListener("click", () => {
+  cerrarModalCarrito();
+  resetearVistaCarrito();
+});
+
+function resetearVistaCarrito() {
+  pedidoFinalizado = null;
+  document.getElementById("vistaCarrito").style.display = "block";
+  document.getElementById("vistaFinalizado").style.display = "none";
+  btnFinalizar.disabled = false;
+  btnFinalizar.textContent = "Finalizar pedido";
+}
 
 /* ===== INICIALIZAR ===== */
 cargarCategorias();
