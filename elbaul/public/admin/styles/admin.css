@@ -423,3 +423,37 @@ body.admin-page {
   padding: 0.5rem 0.9rem;
   font-size: 0.8rem;
 }
+
+.btn-estado:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-estado:disabled:hover {
+  background: none;
+  color: #7a6a5f;
+  border-color: #e0d5cc;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: #3a2e26;
+  color: white;
+  padding: 0.9rem 1.3rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}

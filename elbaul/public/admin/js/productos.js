@@ -167,11 +167,24 @@ formProducto.addEventListener("submit", async (e) => {
 
     cerrarPanel();
     await cargarProductos();
+    mostrarToast("Producto guardado");
   } catch (error) {
     console.error(error);
     formError.textContent = "Error al guardar: " + error.message;
   }
 });
+
+/* ===== TOAST ===== */
+let toastTimeout;
+function mostrarToast(mensaje) {
+  const toast = document.getElementById("toast");
+  toast.textContent = mensaje;
+  toast.classList.add("visible");
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove("visible");
+  }, 3000);
+}
 
 /* ===== CARGAR PRODUCTOS ===== */
 async function cargarProductos() {
@@ -200,21 +213,30 @@ async function cargarProductos() {
         ? `<div class="foto"><img src="${p.fotoUrl}" alt="${p.nombre}"></div>`
         : `<div class="foto">📦</div>`;
 
-            // Determinar texto y clase del botón de estado
-      const estado = p.estado || "borrador";
-      let textoBoton = "";
-      let claseBoton = "";
+        // Determinar texto y clase del botón de estado
+        const estado = p.estado || "borrador";
+        const tieneFoto = !!p.fotoUrl;
+        let textoBoton = "";
+        let claseBoton = "";
+        let deshabilitado = "";
 
-      if (estado === "borrador") {
-        textoBoton = "Publicar";
-        claseBoton = "publicar";
-      } else if (estado === "activo") {
-        textoBoton = "Desactivar";
-        claseBoton = "desactivar";
-      } else {
-        textoBoton = "Activar";
-        claseBoton = "publicar";
-      }
+        if (estado === "borrador") {
+          if (tieneFoto) {
+            textoBoton = "Publicar";
+            claseBoton = "publicar";
+          } else {
+            textoBoton = "Falta foto";
+            claseBoton = "publicar";
+            deshabilitado = "disabled";
+          }
+        } else if (estado === "activo") {
+          textoBoton = "Desactivar";
+          claseBoton = "desactivar";
+        } else {
+          textoBoton = "Activar";
+          claseBoton = "publicar";
+          if (!tieneFoto) deshabilitado = "disabled";
+        }
 
       tr.innerHTML = `
         <td>${fotoHtml}</td>
@@ -225,9 +247,9 @@ async function cargarProductos() {
         <td><span class="badge ${estado}">${estado}</span></td>
         <td>
           <button class="btn-editar" data-id="${docSnap.id}">✏️</button>
-          <button class="btn-estado ${claseBoton}" data-id="${docSnap.id}">${textoBoton}</button>
+          <button class="btn-estado ${claseBoton}" data-id="${docSnap.id}" ${deshabilitado}>${textoBoton}</button>
         </td>
-      `;
+      `;    
 
       // Conectar botón editar
       tr.querySelector(".btn-editar").addEventListener("click", () => {
@@ -266,13 +288,14 @@ async function cambiarEstado(id, estadoActual) {
   }
 
   try {
-    await updateDoc(doc(db, "productos", id), {
+      await updateDoc(doc(db, "productos", id), {
       estado: nuevoEstado,
       fechaActualizacion: serverTimestamp()
     });
     await cargarProductos();
+    mostrarToast("Estado actualizado");
   } catch (error) {
     console.error(error);
-    alert("Error al cambiar estado: " + error.message);
+    mostrarToast("Error al cambiar estado");
   }
 }
