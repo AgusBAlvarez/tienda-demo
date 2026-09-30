@@ -342,3 +342,43 @@ body.admin-page {
   margin-top: 0.5rem;
   min-height: 1.2em;
 }
+
+/* ===== BOTÓN DE ESTADO ===== */
+.btn-estado {
+  background: none;
+  border: 1.5px solid #e0d5cc;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #7a6a5f;
+  transition: all 0.2s ease;
+  margin-left: 0.3rem;
+}
+
+.btn-estado:hover {
+  background: #f5ede7;
+  border-color: #C3977E;
+  color: #C3977E;
+}
+
+.btn-estado.publicar {
+  border-color: #C3977E;
+  color: #C3977E;
+}
+
+.btn-estado.publicar:hover {
+  background: #C3977E;
+  color: white;
+}
+
+.btn-estado.desactivar {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.btn-estado.desactivar:hover {
+  background: #c0392b;
+  color: white;
+}

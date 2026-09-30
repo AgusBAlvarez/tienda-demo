@@ -145,21 +145,43 @@ async function cargarProductos() {
         ? `<div class="foto"><img src="${p.fotoUrl}" alt="${p.nombre}"></div>`
         : `<div class="foto">📦</div>`;
 
+            // Determinar texto y clase del botón de estado
+      const estado = p.estado || "borrador";
+      let textoBoton = "";
+      let claseBoton = "";
+
+      if (estado === "borrador") {
+        textoBoton = "Publicar";
+        claseBoton = "publicar";
+      } else if (estado === "activo") {
+        textoBoton = "Desactivar";
+        claseBoton = "desactivar";
+      } else {
+        textoBoton = "Activar";
+        claseBoton = "publicar";
+      }
+
       tr.innerHTML = `
         <td>${fotoHtml}</td>
         <td>${p.nombre || "—"}</td>
         <td>${p.categoria || "—"}</td>
         <td>$${(p.precio || 0).toLocaleString("es-AR")}</td>
         <td>${p.stock ?? "—"}</td>
-        <td><span class="badge ${p.estado || "borrador"}">${p.estado || "borrador"}</span></td>
+        <td><span class="badge ${estado}">${estado}</span></td>
         <td>
           <button class="btn-editar" data-id="${docSnap.id}">✏️</button>
+          <button class="btn-estado ${claseBoton}" data-id="${docSnap.id}">${textoBoton}</button>
         </td>
       `;
 
       // Conectar botón editar
       tr.querySelector(".btn-editar").addEventListener("click", () => {
         abrirPanel({ id: docSnap.id, data: p });
+      });
+
+      // Conectar botón de estado
+      tr.querySelector(".btn-estado").addEventListener("click", async () => {
+        await cambiarEstado(docSnap.id, estado);
       });
 
       tbody.appendChild(tr);
@@ -174,5 +196,28 @@ async function cargarProductos() {
         </td>
       </tr>
     `;
+  }
+}
+
+
+/* ===== CAMBIAR ESTADO ===== */
+async function cambiarEstado(id, estadoActual) {
+  let nuevoEstado;
+
+  if (estadoActual === "borrador" || estadoActual === "inactivo") {
+    nuevoEstado = "activo";
+  } else {
+    nuevoEstado = "inactivo";
+  }
+
+  try {
+    await updateDoc(doc(db, "productos", id), {
+      estado: nuevoEstado,
+      fechaActualizacion: serverTimestamp()
+    });
+    await cargarProductos();
+  } catch (error) {
+    console.error(error);
+    alert("Error al cambiar estado: " + error.message);
   }
 }
