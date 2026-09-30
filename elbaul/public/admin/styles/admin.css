@@ -457,3 +457,18 @@ body.admin-page {
   opacity: 1;
   transform: translateY(0);
 }
+
+.btn-eliminar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  margin-left: 0.2rem;
+}
+
+.btn-eliminar:hover {
+  background: #f8d7da;
+}

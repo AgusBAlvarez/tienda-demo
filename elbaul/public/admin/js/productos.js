@@ -1,9 +1,9 @@
 /* ===== IMPORTS ===== */
-import { auth, db } from "../../shared/firebase-config.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { db } from "../../shared/firebase-config.js";
 import {
   collection, getDocs, addDoc, updateDoc, doc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { protegerPagina, configurarLogout } from "./auth-guard.js";
 
 
 /* ===== CLOUDINARY ===== */
@@ -27,21 +27,11 @@ const fotoUrlInput = document.getElementById("fotoUrl");
 /* ===== ESTADO ===== */
 let productoEditando = null; // null = crear, id = editar
 
-/* ===== PROTECCIÓN DE PÁGINA ===== */
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "../index.html";
-    return;
-  }
-  document.getElementById("userEmail").textContent = user.email;
+/* ===== PROTECCIÓN Y LOGOUT ===== */
+protegerPagina(async () => {
   await cargarProductos();
 });
-
-/* ===== LOGOUT ===== */
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await signOut(auth);
-  window.location.href = "../index.html";
-});
+configurarLogout();
 
 /* ===== PREVIEW DE FOTO ===== */
 function mostrarFoto(url) {
@@ -88,7 +78,8 @@ btnSubirFoto.addEventListener("click", abrirWidgetCloudinary);
 btnQuitarFoto.addEventListener("click", () => mostrarFoto(""));
 
 /* ===== ABRIR PANEL (modo crear o editar) ===== */
-function abrirPanel(producto = null) {
+async function abrirPanel(producto = null) {
+  await cargarCategoriasEnSelect();
   formError.textContent = "";
   formProducto.reset();
 
@@ -97,7 +88,16 @@ function abrirPanel(producto = null) {
     productoEditando = producto.id;
     panelTitulo.textContent = "Editar producto";
     document.getElementById("nombre").value = producto.data.nombre || "";
-    document.getElementById("categoria").value = producto.data.categoria || "Otros";
+        const selectCat = document.getElementById("categoria");
+    const catProducto = producto.data.categoria || "Otros";
+    // Si la categoría no existe en el select, la agregamos
+    if (![...selectCat.options].some(o => o.value === catProducto)) {
+      const opt = document.createElement("option");
+      opt.value = catProducto;
+      opt.textContent = catProducto + " (eliminada)";
+      selectCat.appendChild(opt);
+    }
+    selectCat.value = catProducto;
     document.getElementById("precio").value = producto.data.precio ?? "";
     document.getElementById("stock").value = producto.data.stock ?? "";
     document.getElementById("stockMinimo").value = producto.data.stockMinimo ?? 3;
@@ -184,6 +184,36 @@ function mostrarToast(mensaje) {
   toastTimeout = setTimeout(() => {
     toast.classList.remove("visible");
   }, 3000);
+}
+
+/* ===== CARGAR CATEGORÍAS EN EL SELECT ===== */
+async function cargarCategoriasEnSelect() {
+  const select = document.getElementById("categoria");
+  if (!select) return;
+
+  try {
+    const snapshot = await getDocs(collection(db, "categorias"));
+    const categorias = snapshot.docs
+      .map(d => d.data().nombre)
+      .sort((a, b) => {
+        // "Otros" siempre al final
+        if (a === "Otros") return 1;
+        if (b === "Otros") return -1;
+        return a.localeCompare(b);
+      });
+
+    // Vaciar el select y llenarlo con las categorías de Firestore
+    select.innerHTML = "";
+    categorias.forEach(nombre => {
+      const opt = document.createElement("option");
+      opt.value = nombre;
+      opt.textContent = nombre;
+      select.appendChild(opt);
+    });
+
+  } catch (error) {
+    console.error("Error al cargar categorías:", error);
+  }
 }
 
 /* ===== CARGAR PRODUCTOS ===== */

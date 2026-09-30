@@ -3,23 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel — El Baul de Maribel</title>
+  <title>Dashboard — El Baul de Maribel</title>
 
   <link rel="icon" type="image/png" href="../assets/favicon.png">
-  <link rel="stylesheet" href="../styles/login.css">
+  <link rel="stylesheet" href="../styles/admin.css">
 </head>
-<body class="dashboard-page">
+<body class="admin-page">
 
-  <header class="dash-header">
-    <h1>Panel de administración</h1>
+  <aside class="admin-sidebar">
+    <div class="logo">
+      <img src="../assets/logo.png" alt="El Baul de Maribel">
+      <span>Panel Admin</span>
+    </div>
+    <nav>
+      <a href="./dashboard.html" class="active">Dashboard</a>
+      <a href="./productos.html">Productos</a>
+      <a href="./categorias.html">Categorías</a>
+      <a href="./ventas.html">Registrar venta</a>
+      <a href="./historial.html">Historial</a>
+    </nav>
+  </aside>
+
+  <header class="admin-header">
+    <span class="user">Conectada como <strong id="userEmail"></strong></span>
     <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
   </header>
 
-  <main class="dash-main">
-    <p>Bienvenida, <strong id="userEmail"></strong></p>
-    <p>Acá iría el contenido del panel: productos, pedidos, etc.</p>
+  <main class="admin-main">
+    <h1>Dashboard</h1>
+    <p style="color:#7a6a5f;">Acá van las métricas. Lo armamos en la Fase 5.</p>
   </main>
 
-  <script type="module" src="../js/auth.js"></script>
+  <script type="module">
+    import { protegerPagina, configurarLogout } from "../js/auth-guard.js";
+    protegerPagina();
+    configurarLogout();
+  </script>
 </body>
 </html>
