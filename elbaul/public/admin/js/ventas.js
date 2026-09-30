@@ -1,7 +1,8 @@
 /* ===== IMPORTS ===== */
 import { auth, db } from "../../shared/firebase-config.js";
 import {
-  collection, getDocs, query, where, updateDoc, doc
+  collection, getDocs, query, where, updateDoc, doc,
+  runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { protegerPagina, configurarLogout } from "./auth-guard.js";
 
@@ -326,12 +327,127 @@ function cerrarConfirmacion() {
   confirmModal.classList.remove("active");
 }
 
-/* ===== ACEPTAR CONFIRMACIÓN (placeholder V6.B) ===== */
+/* ===== ACEPTAR CONFIRMACIÓN — TRANSACCIÓN ===== */
 btnAceptarConfirm.addEventListener("click", async () => {
-  // La transacción real se implementa en V6.B
-  mostrarToast("La transacción se implementa en el siguiente paso");
-  cerrarConfirmacion();
+  btnAceptarConfirm.disabled = true;
+  btnAceptarConfirm.textContent = "Registrando...";
+
+  try {
+    const codigoPedido = pedidoActual?.codigo || null;
+    const itemsParaVenta = itemsVenta.map(item => ({
+      productoId: item.productoId,
+      nombre: item.nombre,
+      cantidad: item.cantidad,
+      precioCongelado: item.precio
+    }));
+
+    const total = itemsVenta.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+
+    const ventaRef = doc(collection(db, "ventas"));
+    const pedidoRef = pedidoActual ? doc(db, "pedidos", pedidoActual.id) : null;
+
+    const productosRefs = itemsParaVenta.map(item =>
+      doc(db, "productos", item.productoId)
+    );
+
+    await runTransaction(db, async (tx) => {
+      // ===== FASE 1: TODAS LAS LECTURAS =====
+
+      const productosData = [];
+      for (let i = 0; i < productosRefs.length; i++) {
+        const prodSnap = await tx.get(productosRefs[i]);
+
+        if (!prodSnap.exists()) {
+          throw new Error(`El producto "${itemsParaVenta[i].nombre}" ya no existe.`);
+        }
+
+        const data = prodSnap.data();
+        const stockActual = data.stock ?? 0;
+
+        if (stockActual < itemsParaVenta[i].cantidad) {
+          throw new Error(
+            `Sin stock de "${itemsParaVenta[i].nombre}". Quedan ${stockActual}, pediste ${itemsParaVenta[i].cantidad}.`
+          );
+        }
+
+        productosData.push({ ref: productosRefs[i], stockActual });
+      }
+
+      // Leer pedido (si existe) ANTES de cualquier escritura
+      let pedidoSnap = null;
+      if (pedidoRef) {
+        pedidoSnap = await tx.get(pedidoRef);
+        if (!pedidoSnap.exists()) {
+          throw new Error("El pedido ya no existe.");
+        }
+        if (pedidoSnap.data().estado === "confirmado") {
+          throw new Error("Este pedido ya fue confirmado.");
+        }
+      }
+
+      // ===== FASE 2: TODAS LAS ESCRITURAS =====
+
+      // Descontar stock
+      for (let i = 0; i < productosData.length; i++) {
+        tx.update(productosData[i].ref, {
+          stock: productosData[i].stockActual - itemsParaVenta[i].cantidad,
+          fechaActualizacion: serverTimestamp()
+        });
+      }
+
+      // Marcar pedido como confirmado
+      if (pedidoRef) {
+        tx.update(pedidoRef, {
+          estado: "confirmado",
+          ventaId: ventaRef.id,
+          fechaConfirmacion: serverTimestamp()
+        });
+      }
+
+      // Crear la venta
+      const ventaData = {
+        fecha: serverTimestamp(),
+        total,
+        metodoPago,
+        items: itemsParaVenta,
+        registradoPor: auth.currentUser?.email || "desconocido"
+      };
+
+      if (codigoPedido) {
+        ventaData.pedidoCodigo = codigoPedido;
+      }
+
+      tx.set(ventaRef, ventaData);
+    });
+
+    mostrarToast("Venta registrada correctamente");
+    cerrarConfirmacion();
+    limpiarVenta();
+    cargarPendientes();
+
+  } catch (error) {
+    console.error(error);
+    mostrarToast(error.message || "Error al registrar la venta");
+  } finally {
+    btnAceptarConfirm.disabled = false;
+    btnAceptarConfirm.textContent = "Sí, registrar";
+  }
 });
+
+/* ===== LIMPIAR VENTA ===== */
+function limpiarVenta() {
+  itemsVenta = [];
+  pedidoActual = null;
+  metodoPago = null;
+
+  document.getElementById("inputCodigo").value = "";
+  document.getElementById("errorCodigo").textContent = "";
+
+  document.querySelectorAll('input[name="metodoPago"]').forEach(r => r.checked = false);
+
+  renderItems();
+  actualizarTotal();
+}
 
 /* ===== CARGAR PEDIDOS PENDIENTES ===== */
 async function cargarPendientes() {
