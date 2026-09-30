@@ -382,3 +382,44 @@ body.admin-page {
   background: #c0392b;
   color: white;
 }
+
+/* ===== SUBIDA DE FOTO ===== */
+.foto-uploader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.foto-preview {
+  width: 90px;
+  height: 90px;
+  border-radius: 10px;
+  background: #f5ede7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.foto-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.foto-placeholder {
+  font-size: 2rem;
+  opacity: 0.4;
+}
+
+.foto-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.foto-acciones .btn-secundario {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.8rem;
+}

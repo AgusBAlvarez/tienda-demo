@@ -5,6 +5,11 @@ import {
   collection, getDocs, addDoc, updateDoc, doc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+
+/* ===== CLOUDINARY ===== */
+const CLOUD_NAME = "andvb0hj";
+const UPLOAD_PRESET = "elbaul_unsigned";
+
 /* ===== REFERENCIAS DOM ===== */
 const panelOverlay = document.getElementById("panelOverlay");
 const panelProducto = document.getElementById("panelProducto");
@@ -14,6 +19,10 @@ const formProducto = document.getElementById("formProducto");
 const formError = document.getElementById("formError");
 const btnAgregar = document.querySelector(".btn-primary");
 const btnCancelar = document.getElementById("btnCancelar");
+const btnSubirFoto = document.getElementById("btnSubirFoto");
+const btnQuitarFoto = document.getElementById("btnQuitarFoto");
+const fotoPreview = document.getElementById("fotoPreview");
+const fotoUrlInput = document.getElementById("fotoUrl");
 
 /* ===== ESTADO ===== */
 let productoEditando = null; // null = crear, id = editar
@@ -34,6 +43,50 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   window.location.href = "../index.html";
 });
 
+/* ===== PREVIEW DE FOTO ===== */
+function mostrarFoto(url) {
+  if (url) {
+    fotoPreview.innerHTML = `<img src="${url}" alt="Foto">`;
+    btnQuitarFoto.style.display = "inline-block";
+    btnSubirFoto.textContent = "Cambiar foto";
+    fotoUrlInput.value = url;
+  } else {
+    fotoPreview.innerHTML = `<span class="foto-placeholder">📦</span>`;
+    btnQuitarFoto.style.display = "none";
+    btnSubirFoto.textContent = "Subir foto";
+    fotoUrlInput.value = "";
+  }
+}
+
+/* ===== SUBIR FOTO A CLOUDINARY ===== */
+function abrirWidgetCloudinary() {
+  const widget = cloudinary.createUploadWidget(
+    {
+      cloudName: CLOUD_NAME,
+      uploadPreset: UPLOAD_PRESET,
+      folder: "elbaul/productos",
+      sources: ["local", "camera", "url"],
+      multiple: false,
+      maxFileSize: 2000000,
+      clientAllowedFormats: ["jpg", "jpeg", "png", "webp"]
+    },
+    (error, result) => {
+      if (error) {
+        console.error(error);
+        formError.textContent = "Error al subir la foto.";
+        return;
+      }
+      if (result && result.event === "success") {
+        mostrarFoto(result.info.secure_url);
+      }
+    }
+  );
+  widget.open();
+}
+
+btnSubirFoto.addEventListener("click", abrirWidgetCloudinary);
+btnQuitarFoto.addEventListener("click", () => mostrarFoto(""));
+
 /* ===== ABRIR PANEL (modo crear o editar) ===== */
 function abrirPanel(producto = null) {
   formError.textContent = "";
@@ -48,11 +101,13 @@ function abrirPanel(producto = null) {
     document.getElementById("precio").value = producto.data.precio ?? "";
     document.getElementById("stock").value = producto.data.stock ?? "";
     document.getElementById("stockMinimo").value = producto.data.stockMinimo ?? 3;
+    mostrarFoto(producto.data.fotoUrl || "");
   } else {
     // Modo crear
     productoEditando = null;
     panelTitulo.textContent = "Agregar producto";
     document.getElementById("stockMinimo").value = 3;
+    mostrarFoto("");
   }
 
   panelOverlay.classList.add("active");
@@ -93,6 +148,7 @@ formProducto.addEventListener("submit", async (e) => {
     precio,
     stock,
     stockMinimo,
+    fotoUrl: fotoUrlInput.value,
     fechaActualizacion: serverTimestamp()
   };
 
@@ -104,7 +160,6 @@ formProducto.addEventListener("submit", async (e) => {
       // Crear producto nuevo
       await addDoc(collection(db, "productos"), {
         ...datos,
-        fotoUrl: "",
         estado: "borrador",
         fechaCreacion: serverTimestamp()
       });
