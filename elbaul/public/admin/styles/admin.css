@@ -824,3 +824,66 @@ body.admin-page {
   background: #c0392b;
   color: white;
 }
+
+/* ===== MODAL BUSCAR PRODUCTO ===== */
+.modal-buscar {
+  max-width: 480px;
+}
+
+.modal-buscar input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid #e0d5cc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.modal-buscar input:focus {
+  border-color: #C3977E;
+}
+
+.buscar-resultados {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.buscar-resultado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-radius: 6px;
+}
+
+.buscar-resultado:hover {
+  background: #f5ede7;
+}
+
+.buscar-resultado:last-child {
+  border-bottom: none;
+}
+
+.buscar-resultado .nombre {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3a2e26;
+}
+
+.buscar-resultado .detalles {
+  font-size: 0.8rem;
+  color: #7a6a5f;
+  margin-top: 0.2rem;
+}
+
+.buscar-resultado .precio {
+  font-weight: 600;
+  color: #2e7d32;
+  font-size: 0.9rem;
+}

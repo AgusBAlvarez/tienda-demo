@@ -154,6 +154,109 @@ function renderItems() {
 function actualizarTotal() {
   const total = itemsVenta.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
   document.getElementById("totalVenta").textContent = `$${total.toLocaleString("es-AR")}`;
+  actualizarBotonConfirmar();
+}
+
+/* ===== BUSCAR PRODUCTO (VENTA MANUAL) ===== */
+const buscarOverlay = document.getElementById("buscarOverlay");
+const buscarModal = document.getElementById("buscarModal");
+const buscarProductoInput = document.getElementById("buscarProductoInput");
+const buscarResultados = document.getElementById("buscarResultados");
+const btnAgregarManual = document.getElementById("btnAgregarManual");
+const btnCerrarBuscar = document.getElementById("btnCerrarBuscar");
+
+let productosCache = [];
+
+btnAgregarManual.addEventListener("click", abrirBuscar);
+btnCerrarBuscar.addEventListener("click", cerrarBuscar);
+buscarOverlay.addEventListener("click", cerrarBuscar);
+
+async function abrirBuscar() {
+  buscarOverlay.classList.add("active");
+  buscarModal.classList.add("active");
+  buscarProductoInput.value = "";
+  buscarResultados.innerHTML = `<p class="texto-vacio">Escribí para buscar productos.</p>`;
+  buscarProductoInput.focus();
+
+  if (productosCache.length === 0) {
+    try {
+      const snapshot = await getDocs(collection(db, "productos"));
+      productosCache = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+}
+
+function cerrarBuscar() {
+  buscarOverlay.classList.remove("active");
+  buscarModal.classList.remove("active");
+}
+
+function normalizar(texto) {
+  return (texto || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+buscarProductoInput.addEventListener("input", (e) => {
+  const texto = normalizar(e.target.value);
+
+  if (texto.trim() === "") {
+    buscarResultados.innerHTML = `<p class="texto-vacio">Escribí para buscar productos.</p>`;
+    return;
+  }
+
+  const filtrados = productosCache
+    .filter(p => normalizar(p.nombre).includes(texto))
+    .slice(0, 8);
+
+  if (filtrados.length === 0) {
+    buscarResultados.innerHTML = `<p class="texto-vacio">No se encontraron productos.</p>`;
+    return;
+  }
+
+  buscarResultados.innerHTML = "";
+
+  filtrados.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "buscar-resultado";
+
+    div.innerHTML = `
+      <div>
+        <div class="nombre">${p.nombre}</div>
+        <div class="detalles">Stock: ${p.stock ?? "—"} · ${p.categoria || "Sin categoría"}</div>
+      </div>
+      <span class="precio">$${(p.precio || 0).toLocaleString("es-AR")}</span>
+    `;
+
+    div.addEventListener("click", () => {
+      agregarProductoManual(p);
+    });
+
+    buscarResultados.appendChild(div);
+  });
+});
+
+function agregarProductoManual(producto) {
+  const existente = itemsVenta.find(i => i.productoId === producto.id);
+
+  if (existente) {
+    existente.cantidad += 1;
+  } else {
+    itemsVenta.push({
+      productoId: producto.id,
+      nombre: producto.nombre,
+      precio: producto.precio,
+      cantidad: 1
+    });
+  }
+
+  renderItems();
+  actualizarTotal();
+  cerrarBuscar();
+  mostrarToast(`"${producto.nombre}" agregado`);
 }
 
 /* ===== CARGAR PEDIDOS PENDIENTES ===== */
@@ -269,6 +372,21 @@ async function marcarAbandonado(id, codigo) {
     console.error(error);
     mostrarToast("Error al marcar como abandonado");
   }
+}
+
+/* ===== MÉTODO DE PAGO ===== */
+document.querySelectorAll('input[name="metodoPago"]').forEach(radio => {
+  radio.addEventListener("change", (e) => {
+    metodoPago = e.target.value;
+    actualizarBotonConfirmar();
+  });
+});
+
+function actualizarBotonConfirmar() {
+  const btn = document.getElementById("btnConfirmarVenta");
+  const tieneItems = itemsVenta.length > 0;
+  const tieneMetodo = metodoPago !== null;
+  btn.disabled = !(tieneItems && tieneMetodo);
 }
 
 /* ===== INICIALIZAR ===== */
