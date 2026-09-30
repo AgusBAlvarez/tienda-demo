@@ -97,6 +97,28 @@
     </div>
   </div>
 
+    <!-- ===== MODAL CARRITO ===== -->
+  <div class="modal-carrito-overlay" id="carritoOverlay"></div>
+
+  <div class="modal-carrito" id="modalCarrito">
+    <div class="carrito-header">
+      <h2>Tu pedido</h2>
+      <button class="carrito-cerrar" id="carritoCerrar" aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="carrito-body" id="carritoBody">
+      <!-- Se llena dinámicamente -->
+    </div>
+
+  <div class="carrito-footer" id="carritoFooter">
+      <div class="carrito-total">
+        <span>Total:</span>
+        <strong id="carritoTotal">$0</strong>
+      </div>
+      <button class="btn-finalizar" id="btnFinalizar">Finalizar pedido</button>
+    </div>
+  </div>
+
   <!-- ===== SCRIPT ===== -->
   <script type="module" src="./js/main.js"></script>
 
