@@ -259,6 +259,80 @@ function agregarProductoManual(producto) {
   mostrarToast(`"${producto.nombre}" agregado`);
 }
 
+/* ===== CONFIRMACIÓN DE VENTA ===== */
+const confirmOverlay = document.getElementById("confirmOverlay");
+const confirmModal = document.getElementById("confirmModal");
+const confirmResumen = document.getElementById("confirmResumen");
+const btnConfirmarVenta = document.getElementById("btnConfirmarVenta");
+const btnCancelarConfirm = document.getElementById("btnCancelarConfirm");
+const btnAceptarConfirm = document.getElementById("btnAceptarConfirm");
+
+btnConfirmarVenta.addEventListener("click", abrirConfirmacion);
+btnCancelarConfirm.addEventListener("click", cerrarConfirmacion);
+confirmOverlay.addEventListener("click", cerrarConfirmacion);
+
+function abrirConfirmacion() {
+  // Leer el radio seleccionado actual (no depender de la variable)
+  const radioSeleccionado = document.querySelector('input[name="metodoPago"]:checked');
+
+  if (itemsVenta.length === 0) {
+    mostrarToast("Agregá al menos un item");
+    return;
+  }
+
+  if (!radioSeleccionado) {
+    mostrarToast("Seleccioná un método de pago");
+    return;
+  }
+
+  // Actualizar metodoPago con lo que está marcado en el DOM
+  metodoPago = radioSeleccionado.value;
+
+  const total = itemsVenta.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+
+  const itemsHtml = itemsVenta.map(item => `
+    <div class="confirm-item">
+      <span><span class="cant">${item.cantidad}x</span> ${item.nombre}</span>
+      <span>$${(item.precio * item.cantidad).toLocaleString("es-AR")}</span>
+    </div>
+  `).join("");
+
+  const metodoTexto = {
+    transferencia: "Transferencia",
+    efectivo: "Efectivo",
+    mercadolibre: "Mercado Libre",
+    credito: "Crédito",
+    debito: "Débito"
+  }[metodoPago] || metodoPago;
+
+  confirmResumen.innerHTML = `
+    <h3>Items</h3>
+    <div class="confirm-items">
+      ${itemsHtml}
+      <div class="confirm-total">
+        <span>Total:</span>
+        <strong>$${total.toLocaleString("es-AR")}</strong>
+      </div>
+    </div>
+    <p class="confirm-metodo">Método de pago: <strong>${metodoTexto}</strong></p>
+  `;
+
+  confirmOverlay.classList.add("active");
+  confirmModal.classList.add("active");
+}
+
+function cerrarConfirmacion() {
+  confirmOverlay.classList.remove("active");
+  confirmModal.classList.remove("active");
+}
+
+/* ===== ACEPTAR CONFIRMACIÓN (placeholder V6.B) ===== */
+btnAceptarConfirm.addEventListener("click", async () => {
+  // La transacción real se implementa en V6.B
+  mostrarToast("La transacción se implementa en el siguiente paso");
+  cerrarConfirmacion();
+});
+
 /* ===== CARGAR PEDIDOS PENDIENTES ===== */
 async function cargarPendientes() {
   const contenedor = document.getElementById("listaPendientes");
@@ -385,7 +459,8 @@ document.querySelectorAll('input[name="metodoPago"]').forEach(radio => {
 function actualizarBotonConfirmar() {
   const btn = document.getElementById("btnConfirmarVenta");
   const tieneItems = itemsVenta.length > 0;
-  const tieneMetodo = metodoPago !== null;
+  const radioSeleccionado = document.querySelector('input[name="metodoPago"]:checked');
+  const tieneMetodo = !!radioSeleccionado;
   btn.disabled = !(tieneItems && tieneMetodo);
 }
 

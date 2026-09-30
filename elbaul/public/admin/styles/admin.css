@@ -887,3 +887,62 @@ body.admin-page {
   color: #2e7d32;
   font-size: 0.9rem;
 }
+
+/* ===== RESUMEN DE CONFIRMACIÓN ===== */
+.confirm-resumen {
+  margin-bottom: 1.5rem;
+}
+
+.confirm-resumen h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7a6a5f;
+  margin: 0 0 0.6rem;
+  font-weight: 600;
+}
+
+.confirm-items {
+  background: #f5ede7;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.confirm-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  padding: 0.3rem 0;
+  color: #3a2e26;
+}
+
+.confirm-item .cant {
+  color: #7a6a5f;
+  margin-right: 0.3rem;
+}
+
+.confirm-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.8rem;
+  border-top: 1px solid #e0d5cc;
+  font-size: 1rem;
+}
+
+.confirm-total strong {
+  font-size: 1.3rem;
+  color: #2e7d32;
+}
+
+.confirm-metodo {
+  font-size: 0.85rem;
+  color: #7a6a5f;
+  margin-top: 0.5rem;
+}
+
+.confirm-metodo strong {
+  color: #3a2e26;
+  text-transform: capitalize;
+}
