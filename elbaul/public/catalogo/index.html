@@ -21,11 +21,11 @@
     </div>
 
     <div class="buscador">
-      <input type="text" placeholder="Buscar...">
+      <input type="text" placeholder="Buscar..." id="buscadorInput">
       <button aria-label="Buscar">🔍</button>
     </div>
 
-    <button class="carrito" aria-label="Carrito">🛒</button>
+    <button class="carrito" aria-label="Carrito" id="btnCarrito">🛒</button>
     <button class="menu-btn" aria-label="Menú">☰</button>
   </nav>
 
@@ -35,39 +35,13 @@
   </section>
 
     <!-- ===== CATEGORÍAS ===== -->
-    <section class="categorias">
-        <button class="categoria active">Todos</button>
-        <button class="categoria">Ofertas</button>
-        <button class="categoria">Nuevos</button>
-        <button class="categoria">Más vendidos</button>
-        <button class="categoria">Decoración</button>
-        <button class="categoria">Cocina</button>
-        <button class="categoria">Regalos</button>
-        <button class="categoria">Hogar</button>
+    <section class="categorias" id="categorias">
+      <!-- Se llena dinámicamente desde Firestore -->
     </section>
 
   <!-- ===== PRODUCTOS ===== -->
-  <section class="productos">
-    <div class="producto">
-      <div class="img">🧺</div>
-      <h3>Producto</h3>
-      <p>$00.00</p>
-    </div>
-    <div class="producto">
-      <div class="img">🧺</div>
-      <h3>Producto</h3>
-      <p>$00.00</p>
-    </div>
-    <div class="producto">
-      <div class="img">🧺</div>
-      <h3>Producto</h3>
-      <p>$00.00</p>
-    </div>
-    <div class="producto">
-      <div class="img">🧺</div>
-      <h3>Producto</h3>
-      <p>$00.00</p>
-    </div>
+  <section class="productos" id="productos">
+    <!-- Se llena dinámicamente desde Firestore -->
   </section>
 
   <!-- ===== FOOTER ===== -->
@@ -79,18 +53,52 @@
   <aside class="menu-lateral">
     <button class="cerrar" aria-label="Cerrar">✕</button>
     <ul>
-      <li><a href="#">Inicio</a></li>
-      <li><a href="#">Productos</a></li>
-      <li><a href="#">Ofertas</a></li>
-      <li><a href="#">Contacto</a></li>
+      <li><a href="./index.html">Inicio</a></li>
+      <li><a href="#productos">Productos</a></li>
+      <li><a href="#categorias">Categorías</a></li>
+      <li><a href="https://wa.me/5492616946182" target="_blank">Contacto</a></li>
     </ul>
   </aside>
 
   <!-- ===== OVERLAY ===== -->
   <div class="overlay"></div>
 
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ===== MODAL DETALLE PRODUCTO ===== -->
+  <div class="modal-overlay" id="modalOverlay"></div>
+
+  <div class="modal-producto" id="modalProducto">
+    <button class="modal-volver" id="modalVolver" aria-label="Volver">←</button>
+    <div class="modal-img" id="modalImg"></div>
+    <div class="modal-body">
+      <h2 id="modalNombre">Nombre</h2>
+      <p class="modal-descripcion" id="modalDescripcion"></p>
+      <p class="modal-precio" id="modalPrecio"></p>
+      <div class="modal-cantidad">
+        <button class="cant-btn" id="cantMenos">−</button>
+        <span id="cantValor">1</span>
+        <button class="cant-btn" id="cantMas">+</button>
+      </div>
+      <button class="btn-agregar-modal" id="btnAgregarModal">Agregar al carrito</button>
+    </div>
+  </div>
+
+    <!-- ===== MODAL CONFIRMACIÓN ===== -->
+  <div class="modal-confirm-overlay" id="confirmOverlay"></div>
+
+  <div class="modal-confirm" id="confirmModal">
+    <div class="confirm-icono">✓</div>
+    <p class="confirm-texto">Producto añadido al carrito exitosamente</p>
+    <div class="confirm-botones">
+      <button class="btn-ver-carrito" id="btnVerCarrito">Ver carrito</button>
+      <button class="btn-seguir" id="btnSeguirComprando">Seguir comprando</button>
+    </div>
+  </div>
+
   <!-- ===== SCRIPT ===== -->
-  <script src="./js/main.js"></script>
+  <script type="module" src="./js/main.js"></script>
 
 </body>
 </html>

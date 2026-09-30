@@ -98,6 +98,7 @@ async function abrirPanel(producto = null) {
       selectCat.appendChild(opt);
     }
     selectCat.value = catProducto;
+    document.getElementById("descripcion").value = producto.data.descripcion || "";
     document.getElementById("precio").value = producto.data.precio ?? "";
     document.getElementById("stock").value = producto.data.stock ?? "";
     document.getElementById("stockMinimo").value = producto.data.stockMinimo ?? 3;
@@ -105,6 +106,7 @@ async function abrirPanel(producto = null) {
   } else {
     // Modo crear
     productoEditando = null;
+    document.getElementById("descripcion").value = "";
     panelTitulo.textContent = "Agregar producto";
     document.getElementById("stockMinimo").value = 3;
     mostrarFoto("");
@@ -148,6 +150,7 @@ formProducto.addEventListener("submit", async (e) => {
     precio,
     stock,
     stockMinimo,
+    descripcion: document.getElementById("descripcion").value.trim(),
     fotoUrl: fotoUrlInput.value,
     fechaActualizacion: serverTimestamp()
   };
