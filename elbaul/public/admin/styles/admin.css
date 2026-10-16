@@ -946,3 +946,375 @@ body.admin-page {
   color: #3a2e26;
   text-transform: capitalize;
 }
+/* ===== DASHBOARD ===== */
+.dashboard-metrica {
+  background: white;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.dashboard-metrica h2 {
+  font-size: 1rem;
+  margin: 0 0 1rem;
+  color: #3a2e26;
+}
+
+/* ===== STOCK BAJO ===== */
+.stock-bajo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.stock-bajo-item:last-child {
+  border-bottom: none;
+}
+
+.stock-bajo-item .nombre {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3a2e26;
+}
+
+.stock-bajo-item .categoria {
+  font-size: 0.8rem;
+  color: #7a6a5f;
+  margin-top: 0.2rem;
+}
+
+.stock-bajo-item .stock {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #c0392b;
+}
+
+.stock-bajo-item .stock.ok {
+  color: #2e7d32;
+}
+/* ===== ÚLTIMAS VENTAS ===== */
+.ultima-venta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.ultima-venta:last-child {
+  border-bottom: none;
+}
+
+.ultima-venta .info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ultima-venta .fecha {
+  font-size: 0.8rem;
+  color: #7a6a5f;
+}
+
+.ultima-venta .detalle {
+  font-size: 0.9rem;
+  color: #3a2e26;
+  font-weight: 600;
+  margin-top: 0.2rem;
+}
+
+.ultima-venta .total {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.ultima-venta .metodo {
+  font-size: 0.75rem;
+  color: #7a6a5f;
+  text-transform: capitalize;
+  text-align: right;
+  margin-top: 0.2rem;
+}
+
+/* ===== CLIENTE EN VENTA ===== */
+.venta-cliente {
+  background: white;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.venta-cliente label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3a2e26;
+  margin-bottom: 0.5rem;
+}
+
+.venta-cliente input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid #e0d5cc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: white;
+  color: #3a2e26;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.venta-cliente input:focus {
+  border-color: #C3977E;
+}
+
+/* ===== RESUMEN DÍA ===== */
+.resumen-dia {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.resumen-item {
+  flex: 1;
+  min-width: 140px;
+  background: #f5ede7;
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.resumen-item .valor {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #2e7d32;
+  display: block;
+}
+
+.resumen-item .etiqueta {
+  font-size: 0.8rem;
+  color: #7a6a5f;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+/* ===== PEDIDOS PENDIENTES ===== */
+.pedido-pendiente-dash {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.pedido-pendiente-dash:last-child {
+  border-bottom: none;
+}
+
+.pedido-pendiente-dash .codigo {
+  font-weight: 700;
+  color: #C3977E;
+  letter-spacing: 2px;
+}
+
+.pedido-pendiente-dash .info {
+  font-size: 0.85rem;
+  color: #7a6a5f;
+}
+
+.pedido-pendiente-dash .total {
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+/* ===== HISTORIAL ===== */
+.historial-filtros {
+  background: white;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filtro-grupo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filtro-grupo label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3a2e26;
+}
+
+.filtro-grupo select {
+  padding: 0.5rem 0.8rem;
+  border: 1.5px solid #e0d5cc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: white;
+  color: #3a2e26;
+  cursor: pointer;
+  outline: none;
+}
+
+.filtro-grupo select:focus {
+  border-color: #C3977E;
+}
+
+.historial-totales {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+/* ===== ESTADO ANULADA ===== */
+.badge.anulada {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.fila-anulada {
+  opacity: 0.6;
+}
+
+.fila-anulada td {
+  text-decoration: line-through;
+  text-decoration-color: #999;
+}
+
+/* ===== DETALLE VENTA ===== */
+.detalle-contenido {
+  margin-bottom: 1.5rem;
+}
+
+.detalle-seccion {
+  margin-bottom: 1rem;
+}
+
+.detalle-seccion h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7a6a5f;
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.detalle-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #eee;
+}
+
+.detalle-item:last-child {
+  border-bottom: none;
+}
+
+.detalle-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 0.7rem;
+  margin-top: 0.5rem;
+  border-top: 2px solid #e0d5cc;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* ===== BOTÓN PELIGRO ===== */
+.btn-peligro {
+  background: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-peligro:hover {
+  background: #a93226;
+}
+
+.btn-peligro:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* ===== ANULAR VENTA ===== */
+.anular-items {
+  margin-bottom: 1.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.anular-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #eee;
+  gap: 1rem;
+}
+
+.anular-item:last-child {
+  border-bottom: none;
+}
+
+.anular-item .info {
+  flex: 1;
+  min-width: 0;
+}
+
+.anular-item .info h4 {
+  font-size: 0.9rem;
+  margin: 0 0 0.2rem;
+}
+
+.anular-item .info .detalle {
+  font-size: 0.8rem;
+  color: #7a6a5f;
+}
+
+.anular-item .contador {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.anular-item .contador button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid #C3977E;
+  background: white;
+  color: #C3977E;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.anular-item .contador button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.anular-item .contador span {
+  min-width: 2rem;
+  text-align: center;
+  font-weight: 600;
+}

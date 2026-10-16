@@ -31,13 +31,36 @@
 
   <main class="admin-main">
     <h1>Dashboard</h1>
-    <p style="color:#7a6a5f;">Acá van las métricas. Lo armamos en la Fase 5.</p>
+
+    <section class="dashboard-metrica">
+      <h2>⚠️ Stock bajo</h2>
+      <div id="listaStockBajo">
+        <p class="texto-vacio">Cargando...</p>
+      </div>
+    </section>
+
+    <section class="dashboard-metrica">
+      <h2>Últimas ventas</h2>
+      <div id="listaUltimasVentas">
+        <p class="texto-vacio">Próximamente</p>
+      </div>
+    </section>
+
+    <section class="dashboard-metrica">
+      <h2>Pedidos pendientes</h2>
+      <div id="listaPedidosPendientes">
+        <p class="texto-vacio">Próximamente</p>
+      </div>
+    </section>
+
+    <section class="dashboard-metrica">
+      <h2>Ventas del día</h2>
+      <div id="resumenVentasDia">
+        <p class="texto-vacio">Próximamente</p>
+      </div>
+    </section>
   </main>
 
-  <script type="module">
-    import { protegerPagina, configurarLogout } from "../js/auth-guard.js";
-    protegerPagina();
-    configurarLogout();
-  </script>
+  <script type="module" src="../js/dashboard.js"></script>
 </body>
 </html>

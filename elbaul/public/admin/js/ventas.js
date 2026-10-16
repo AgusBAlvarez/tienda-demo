@@ -306,6 +306,8 @@ function abrirConfirmacion() {
     debito: "Débito"
   }[metodoPago] || metodoPago;
 
+  const cliente = document.getElementById("inputCliente").value.trim();
+
   confirmResumen.innerHTML = `
     <h3>Items</h3>
     <div class="confirm-items">
@@ -315,6 +317,7 @@ function abrirConfirmacion() {
         <strong>$${total.toLocaleString("es-AR")}</strong>
       </div>
     </div>
+    ${cliente ? `<p class="confirm-metodo">Cliente: <strong>${cliente}</strong></p>` : ""}
     <p class="confirm-metodo">Método de pago: <strong>${metodoTexto}</strong></p>
   `;
 
@@ -409,6 +412,7 @@ btnAceptarConfirm.addEventListener("click", async () => {
         fecha: serverTimestamp(),
         total,
         metodoPago,
+        cliente: document.getElementById("inputCliente").value.trim() || null,
         items: itemsParaVenta,
         registradoPor: auth.currentUser?.email || "desconocido"
       };
@@ -442,6 +446,7 @@ function limpiarVenta() {
 
   document.getElementById("inputCodigo").value = "";
   document.getElementById("errorCodigo").textContent = "";
+  document.getElementById("inputCliente").value = "";
 
   document.querySelectorAll('input[name="metodoPago"]').forEach(r => r.checked = false);
 
