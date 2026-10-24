@@ -625,7 +625,108 @@ function resetearVistaCarrito() {
   btnFinalizar.textContent = "Finalizar pedido";
 }
 
+/* ===== CARRUSEL DE BANNERS ===== */
+async function cargarBanners() {
+  const contenedor = document.getElementById("carruselBanners");
+  
+  try {
+    const snapshot = await getDocs(collection(db, "banners"));
+    const banners = snapshot.docs.map(d => d.data());
+    
+    if (banners.length === 0) {
+      contenedor.innerHTML = `<div class="banner-img"></div>`;
+      return;
+    }
+
+    contenedor.innerHTML = "";
+    
+    // 1. Contenedor de las imágenes
+    const slidesContainer = document.createElement("div");
+    slidesContainer.className = "slides-container";
+    
+    // 2. Contenedor de los puntitos
+    const dotsContainer = document.createElement("div");
+    dotsContainer.className = "dots-container";
+
+    banners.forEach((b, index) => {
+      // Crear slide
+      const div = document.createElement("div");
+      div.className = `carrusel-slide ${index === 0 ? 'active' : ''}`;
+      
+      const img = document.createElement("img");
+      img.src = b.fotoUrl;
+      img.alt = b.titulo || "Oferta";
+
+      // --- LÓGICA NUEVA: Si tiene categoría, al hacer clic filtra ---
+      if (b.categoria) {
+        img.style.cursor = "pointer";
+        img.addEventListener("click", () => {
+          categoriaActiva = b.categoria;
+          
+          // Actualizar visualmente los chips de arriba
+          const chips = document.querySelectorAll(".categoria");
+          chips.forEach(c => c.classList.remove("active"));
+          const chipActivo = document.querySelector(`[data-categoria="${b.categoria}"]`);
+          if (chipActivo) chipActivo.classList.add("active");
+          
+          aplicarFiltros();
+          
+          // Hacemos scroll suave hasta los productos
+          document.getElementById("productos").scrollIntoView({ behavior: "smooth" });
+        });
+      } else if (b.link) {
+        // Si tiene link en lugar de categoría, lo usamos
+        img.style.cursor = "pointer";
+        img.addEventListener("click", () => {
+          window.open(b.link, "_blank");
+        });
+      }
+
+      div.appendChild(img);
+      slidesContainer.appendChild(div);
+
+      // Crear puntito
+      const dot = document.createElement("span");
+      dot.className = `dot ${index === 0 ? 'active' : ''}`;
+      dot.dataset.index = index;
+      
+      // Al hacer clic en el puntito, cambiar de slide
+      dot.addEventListener("click", () => {
+        cambiarSlide(index);
+      });
+      
+      dotsContainer.appendChild(dot);
+    });
+
+    contenedor.appendChild(slidesContainer);
+    contenedor.appendChild(dotsContainer);
+
+    // Lógica de rotación automática
+    let current = 0;
+    const slides = contenedor.querySelectorAll(".carrusel-slide");
+    const dots = contenedor.querySelectorAll(".dot");
+    
+    function cambiarSlide(index) {
+      slides[current].classList.remove("active");
+      dots[current].classList.remove("active");
+      current = index;
+      slides[current].classList.add("active");
+      dots[current].classList.add("active");
+    }
+
+    if (slides.length > 1) {
+      setInterval(() => {
+        let next = (current + 1) % slides.length;
+        cambiarSlide(next);
+      }, 4000);
+    }
+  } catch (error) {
+    console.error("Error cargando banners:", error);
+  }
+}
+
 /* ===== INICIALIZAR ===== */
 actualizarContadorCarrito();
 cargarCategorias();
 cargarProductos();
+cargarBanners();
