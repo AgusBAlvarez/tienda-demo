@@ -3,3 +3,20 @@ node_modules/
 *.log
 .firebase/
 .vscode/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+
+node_modules/
+.firebase/
+firebase-export/
+test-results/
+playwright-report/
+*.log
+.env
+.env.*

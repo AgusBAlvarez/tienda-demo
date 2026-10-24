@@ -5,12 +5,13 @@ import {
   runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { protegerPagina, configurarLogout } from "./auth-guard.js";
+import { esc } from "../../shared/utils.js";
 
 /* ===== ESTADO ===== */
 let ventasTodas = [];
 let rangoActual = "todo";
 let ventaParaAnular = null;
-let devolucionesPorItem = []; // [{ productoId, nombre, cantidad, devuelta }]
+let devolucionesPorItem = [];
 
 /* ===== PROTECCIÓN ===== */
 protegerPagina(async () => {
@@ -27,8 +28,14 @@ document.getElementById("filtroRango").addEventListener("change", (e) => {
 /* ===== TOAST ===== */
 let toastTimeout;
 function mostrarToast(mensaje) {
-  // En historial no hay toast en el HTML, usamos alert
-  alert(mensaje);
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  toast.textContent = mensaje;
+  toast.classList.add("visible");
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove("visible");
+  }, 3000);
 }
 
 /* ===== CARGAR VENTAS ===== */
@@ -127,9 +134,9 @@ function renderTabla(ventas) {
 
     tr.innerHTML = `
       <td>${fecha}</td>
-      <td>${v.cliente || "—"}</td>
-      <td>${resumen || "—"}</td>
-      <td style="text-transform:capitalize;">${v.metodoPago || "—"}</td>
+      <td>${esc(v.cliente) || "—"}</td>
+      <td>${esc(resumen) || "—"}</td>
+      <td style="text-transform:capitalize;">${esc(v.metodoPago) || "—"}</td>
       <td>$${(v.total || 0).toLocaleString("es-AR")}</td>
       <td>${estadoBadge}</td>
     `;
@@ -182,7 +189,7 @@ function abrirDetalle(v) {
 
   const itemsHtml = (v.items || []).map(item => `
     <div class="detalle-item">
-      <span>${item.cantidad}x ${item.nombre}</span>
+      <span>${item.cantidad}x ${esc(item.nombre)}</span>
       <span>$${(item.precioCongelado * item.cantidad).toLocaleString("es-AR")}</span>
     </div>
   `).join("");
@@ -191,9 +198,9 @@ function abrirDetalle(v) {
     <div class="detalle-seccion">
       <h3>Información</h3>
       <div class="detalle-item"><span>Fecha</span><span>${fecha}</span></div>
-      <div class="detalle-item"><span>Cliente</span><span>${v.cliente || "—"}</span></div>
-      <div class="detalle-item"><span>Método de pago</span><span style="text-transform:capitalize;">${v.metodoPago || "—"}</span></div>
-      <div class="detalle-item"><span>Registrado por</span><span>${v.registradoPor || "—"}</span></div>
+      <div class="detalle-item"><span>Cliente</span><span>${esc(v.cliente) || "—"}</span></div>
+      <div class="detalle-item"><span>Método de pago</span><span style="text-transform:capitalize;">${esc(v.metodoPago) || "—"}</span></div>
+      <div class="detalle-item"><span>Registrado por</span><span>${esc(v.registradoPor) || "—"}</span></div>
       ${v.anulada ? `<div class="detalle-item"><span>Estado</span><span style="color:#c0392b;font-weight:600;">ANULADA</span></div>` : ""}
     </div>
     <div class="detalle-seccion">
@@ -206,9 +213,9 @@ function abrirDetalle(v) {
     </div>
   `;
 
-  // Mostrar u ocultar botón "Anular venta"
+  btnAnularVenta.style.display = "none";
+
   if (v.anulada) {
-    btnAnularVenta.style.display = "none";
     ventaParaAnular = null;
   } else {
     btnAnularVenta.style.display = "inline-block";
@@ -240,16 +247,15 @@ anularOverlay.addEventListener("click", cerrarAnular);
 function abrirAnular() {
   if (!ventaParaAnular) return;
   if (ventaParaAnular.anulada) {
-    alert("Esta venta ya está anulada.");
+    mostrarToast("Esta venta ya está anulada.");
     return;
   }
 
-  // Preparar devoluciones (por defecto todas las unidades vuelven)
   devolucionesPorItem = (ventaParaAnular.items || []).map(item => ({
     productoId: item.productoId,
     nombre: item.nombre,
     cantidad: item.cantidad,
-    devuelta: item.cantidad  // por defecto vuelve todo
+    devuelta: item.cantidad
   }));
 
   renderAnularItems();
@@ -274,7 +280,7 @@ function renderAnularItems() {
 
     div.innerHTML = `
       <div class="info">
-        <h4>${item.nombre}</h4>
+        <h4>${esc(item.nombre)}</h4>
         <div class="detalle">Comprado: ${item.cantidad} · Vuelven: ${item.devuelta}</div>
       </div>
       <div class="contador">
@@ -318,14 +324,25 @@ btnConfirmarAnular.addEventListener("click", async () => {
   try {
     const ventaRef = doc(db, "ventas", ventaParaAnular.id);
 
-    // Preparar referencias de productos (solo los que devuelven algo)
     const itemsConDevolucion = devolucionesPorItem.filter(i => i.devuelta > 0);
     const productosRefs = itemsConDevolucion.map(i =>
       doc(db, "productos", i.productoId)
     );
 
+    let productosNoDevueltos = 0;
+
     await runTransaction(db, async (tx) => {
       // ===== FASE 1: LECTURAS =====
+
+      // NUEVO (Fix 2): Leer la venta primero para evitar doble anulación
+      const ventaSnap = await tx.get(ventaRef);
+      if (!ventaSnap.exists()) {
+        throw new Error("La venta ya no existe.");
+      }
+      if (ventaSnap.data().anulada) {
+        throw new Error("Esta venta ya fue anulada por otra terminal.");
+      }
+
       const productosData = [];
       for (let i = 0; i < productosRefs.length; i++) {
         const prodSnap = await tx.get(productosRefs[i]);
@@ -341,17 +358,17 @@ btnConfirmarAnular.addEventListener("click", async () => {
 
       // ===== FASE 2: ESCRITURAS =====
 
-      // Sumar stock solo de los productos que existen
       for (let i = 0; i < productosData.length; i++) {
         if (productosData[i].stockActual !== null) {
           tx.update(productosData[i].ref, {
             stock: productosData[i].stockActual + itemsConDevolucion[i].devuelta,
             fechaActualizacion: serverTimestamp()
           });
+        } else {
+          productosNoDevueltos++;
         }
       }
 
-      // Marcar la venta como anulada
       tx.update(ventaRef, {
         anulada: true,
         fechaAnulacion: serverTimestamp(),
@@ -366,14 +383,18 @@ btnConfirmarAnular.addEventListener("click", async () => {
       });
     });
 
-    mostrarToast("Venta anulada correctamente");
+    if (productosNoDevueltos > 0) {
+      mostrarToast(`Venta anulada. ${productosNoDevueltos} producto(s) no existe(n), no se les devolvió stock.`);
+    } else {
+      mostrarToast("Venta anulada correctamente");
+    }
     cerrarAnular();
     cerrarDetalle();
     await cargarVentas();
 
   } catch (error) {
     console.error(error);
-    mostrarToast("Error al anular la venta");
+    mostrarToast(error.message || "Error al anular la venta");
   } finally {
     btnConfirmarAnular.disabled = false;
     btnConfirmarAnular.textContent = "Anular venta";

@@ -19,7 +19,7 @@ if (loginForm) {
     e.preventDefault();
 
     const email = document.getElementById("email").value.trim();
-    const pass = document.getElementById("password").value;
+    const pass = document.getElementById("password").value.trim();
     const errorMsg = document.getElementById("errorMsg");
 
     try {

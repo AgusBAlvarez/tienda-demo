@@ -1,21 +1,28 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getFirestore, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDrxz6LjiS6C_vxXyVtfG7luGvO78vI4hI",
-  authDomain: "el-baul-de-maribel.firebaseapp.com",
-  projectId: "el-baul-de-maribel",
-  storageBucket: "el-baul-de-maribel.firebasestorage.app",
-  messagingSenderId: "535344319653",
-  appId: "1:535344319653:web:782d005d6e61117866514c"
+  apiKey: "AIzaSyBRx8Us4ZhPP58eftZEEWYf-NwAsehIzoU",
+  authDomain: "tienda-demo-5c115.firebaseapp.com",
+  projectId: "tienda-demo-5c115",
+  storageBucket: "tienda-demo-5c115.firebasestorage.app",
+  messagingSenderId: "633138449364",
+  appId: "1:633138449364:web:a40ea0ffd9b233aad5e441"
 };
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+
+// ===== CONEXIÓN AL EMULADOR (Solo en localhost) =====
+const esLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+
+if (esLocal) {
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099');
+  console.log("🔥 Conectado al Emulador de Firebase local");
+}

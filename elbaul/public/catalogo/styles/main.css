@@ -232,3 +232,44 @@ footer {
     margin: 0 auto;
   }
 }
+
+/* ===== MENÚ LATERAL — LINKS DINÁMICOS ===== */
+.menu-link {
+  font-size: 0.95rem;
+  color: var(--text);
+  display: block;
+  padding: 0.4rem 0;
+  transition: color 0.2s ease;
+}
+
+.menu-link:hover {
+  color: var(--primary);
+}
+
+/* ===== AJUSTES DE ICONOS (Bootstrap) ===== */
+.carrito i,
+.menu-btn i,
+.buscador button i {
+  font-size: 1.2rem;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.buscador button i {
+  font-size: 1rem;
+}
+
+.modal-volver i {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.cerrar i,
+.carrito-cerrar i {
+  color: inherit;
+}
+
+.btn-whatsapp i {
+  font-size: 1.1rem;
+  margin-right: 0.2rem;
+}

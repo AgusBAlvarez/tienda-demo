@@ -1,7 +1,8 @@
 /* ===== IMPORTS ===== */
 import { db } from "../../shared/firebase-config.js";
 import {
-  collection, getDocs, addDoc, updateDoc, doc, serverTimestamp, deleteDoc, getDoc
+    collection, getDocs, addDoc, updateDoc, doc, serverTimestamp,
+    deleteDoc, getDoc, setDoc, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { protegerPagina, configurarLogout } from "./auth-guard.js";
 
@@ -14,9 +15,34 @@ const formCategoria = document.getElementById("formCategoria");
 const formError = document.getElementById("formError");
 const btnAgregar = document.querySelector(".header-con-accion .btn-primary");
 const btnCancelar = document.getElementById("btnCancelar");
+const confirmarBorradoOverlay = document.getElementById("confirmarBorradoOverlay");
+const confirmarBorradoModal = document.getElementById("confirmarBorradoModal");
+const confirmarBorradoMensaje = document.getElementById("confirmarBorradoMensaje");
+const btnCancelarBorrado = document.getElementById("btnCancelarBorrado");
+const btnConfirmarBorrado = document.getElementById("btnConfirmarBorrado");
 
 /* ===== ESTADO ===== */
 let categoriaEditando = null; // null = crear, id = editar
+let borradoPendiente = null; // { id, nombre, afectados }
+
+/* ===== HELPER: normalizar nombre ===== */
+function normalizarNombre(s) {
+  return (s || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+/* ===== HELPER: verificar si ya existe ===== */
+async function existeCategoriaConNombre(nombre, exceptoId = null) {
+  const snapshot = await getDocs(collection(db, "categorias"));
+  const nombreNorm = normalizarNombre(nombre);
+  return snapshot.docs.some(d => {
+    if (exceptoId && d.id === exceptoId) return false;
+    return normalizarNombre(d.data().nombre) === nombreNorm;
+  });
+}
 
 /* ===== PROTECCIÓN Y LOGOUT ===== */
 protegerPagina(async () => {
@@ -50,6 +76,27 @@ function cerrarPanel() {
   categoriaEditando = null;
 }
 
+function abrirConfirmarBorrado(id, nombre, afectados) {
+  borradoPendiente = { id, nombre, afectados };
+
+  const mensaje = afectados > 0
+    ? `¿Borrar la categoría "${nombre}"? Hay ${afectados} producto(s) que van a pasar a "Otros".`
+    : `¿Borrar la categoría "${nombre}"?`;
+
+  confirmarBorradoMensaje.textContent = mensaje;
+  confirmarBorradoOverlay.classList.add("active");
+  confirmarBorradoModal.classList.add("active");
+}
+
+function cerrarConfirmarBorrado() {
+  confirmarBorradoOverlay.classList.remove("active");
+  confirmarBorradoModal.classList.remove("active");
+  borradoPendiente = null;
+}
+
+btnCancelarBorrado.addEventListener("click", cerrarConfirmarBorrado);
+confirmarBorradoOverlay.addEventListener("click", cerrarConfirmarBorrado);
+
 btnAgregar.addEventListener("click", () => abrirPanel());
 panelCerrar.addEventListener("click", cerrarPanel);
 btnCancelar.addEventListener("click", cerrarPanel);
@@ -79,31 +126,23 @@ formCategoria.addEventListener("submit", async (e) => {
     return;
   }
 
-  // Validar duplicados
-  const snapshot = await getDocs(collection(db, "categorias"));
-  const duplicado = snapshot.docs.some(d => {
-    if (categoriaEditando && d.id === categoriaEditando) return false;
-    return d.data().nombre.toLowerCase() === nombre.toLowerCase();
-  });
-
+  // Validar duplicados (case/espacios/acentos-insensitive)
+  const duplicado = await existeCategoriaConNombre(nombre, categoriaEditando);
   if (duplicado) {
     formError.textContent = "Ya existe una categoría con ese nombre.";
     return;
   }
 
-    try {
+  try {
     if (categoriaEditando) {
-      // Obtener el nombre viejo
       const catSnap = await getDoc(doc(db, "categorias", categoriaEditando));
       const nombreViejo = catSnap.data().nombre;
 
-      // Actualizar la categoría
       await updateDoc(doc(db, "categorias", categoriaEditando), {
         nombre,
         fechaActualizacion: serverTimestamp()
       });
 
-      // Si cambió el nombre, actualizar productos que la usaban
       if (nombreViejo !== nombre) {
         const productosSnap = await getDocs(collection(db, "productos"));
         const afectados = productosSnap.docs.filter(
@@ -136,14 +175,45 @@ formCategoria.addEventListener("submit", async (e) => {
 /* ===== GARANTIZAR "OTROS" ===== */
 async function garantizarOtros() {
   const snapshot = await getDocs(collection(db, "categorias"));
-  const existe = snapshot.docs.some(d => d.data().nombre === "Otros");
+  const nombreNorm = normalizarNombre("Otros");
 
-  if (!existe) {
-    await addDoc(collection(db, "categorias"), {
+  const existentes = snapshot.docs.filter(
+    d => normalizarNombre(d.data().nombre) === nombreNorm
+  );
+
+  if (existentes.length === 0) {
+    await setDoc(doc(db, "categorias", "cat-otros"), {
       nombre: "Otros",
       esFija: true,
       fechaCreacion: serverTimestamp()
     });
+    return;
+  }
+
+  if (existentes.length > 1) {
+    const [conservar, ...duplicados] = existentes;
+
+    for (const dup of duplicados) {
+      await deleteDoc(dup.ref);
+      console.log(`🧹 Duplicado de "Otros" eliminado: ${dup.id}`);
+    }
+
+    if (conservar.id !== "cat-otros") {
+      await setDoc(doc(db, "categorias", "cat-otros"), {
+        ...conservar.data(),
+        esFija: true
+      });
+      await deleteDoc(conservar.ref);
+      console.log(`🔧 "Otros" migrado a ID fijo`);
+    }
+  } else if (existentes[0].id !== "cat-otros") {
+    const viejo = existentes[0];
+    await setDoc(doc(db, "categorias", "cat-otros"), {
+      ...viejo.data(),
+      esFija: true
+    });
+    await deleteDoc(viejo.ref);
+    console.log(`🔧 "Otros" migrado a ID fijo`);
   }
 }
 
@@ -152,7 +222,6 @@ async function cargarCategorias() {
   const tbody = document.getElementById("tablaCategorias");
 
   try {
-    // Traer categorías y productos en paralelo
     const [categoriasSnap, productosSnap] = await Promise.all([
       getDocs(collection(db, "categorias")),
       getDocs(collection(db, "productos"))
@@ -169,7 +238,6 @@ async function cargarCategorias() {
       return;
     }
 
-    // Contar productos por categoría
     const conteo = {};
     productosSnap.forEach(d => {
       const cat = d.data().categoria || "Otros";
@@ -189,8 +257,8 @@ async function cargarCategorias() {
         <td>
           ${esFija
             ? `<span style="color:#7a6a5f; font-size:0.8rem;">—</span>`
-            : `<button class="btn-editar" data-id="${docSnap.id}">✏️</button>
-               <button class="btn-eliminar" data-id="${docSnap.id}" data-nombre="${c.nombre}">🗑️</button>`}
+            : `<button class="btn-editar" data-id="${docSnap.id}"><i class="bi bi-pencil"></i></button>
+          <button class="btn-eliminar" data-id="${docSnap.id}" data-nombre="${c.nombre}"><i class="bi bi-trash"></i></button>`}
         </td>
       `;
 
@@ -220,35 +288,49 @@ async function cargarCategorias() {
 
 /* ===== BORRAR CATEGORÍA ===== */
 async function borrarCategoria(idCategoria, nombreCategoria) {
-  // 1. Contar productos en esa categoría
   const productosSnap = await getDocs(collection(db, "productos"));
   const productosAfectados = productosSnap.docs.filter(
     d => d.data().categoria === nombreCategoria
   );
 
-  // 2. Confirmar con el usuario
-  const mensaje = productosAfectados.length > 0
-    ? `¿Borrar la categoría "${nombreCategoria}"?\n\nHay ${productosAfectados.length} producto(s) en esta categoría. Van a pasar a "Otros".`
-    : `¿Borrar la categoría "${nombreCategoria}"?`;
+  // Abrir modal de confirmación (no confirm() nativo)
+  abrirConfirmarBorrado(idCategoria, nombreCategoria, productosAfectados.length);
+}
 
-  if (!confirm(mensaje)) return;
+/* ===== CONFIRMAR BORRADO ===== */
+btnConfirmarBorrado.addEventListener("click", async () => {
+  if (!borradoPendiente) return;
+
+  const { id, nombre } = borradoPendiente;
+
+  btnConfirmarBorrado.disabled = true;
+  btnConfirmarBorrado.textContent = "Borrando...";
 
   try {
-    // 3. Actualizar productos afectados a "Otros"
+    // Re-leer productos afectados (por si cambiaron desde que se abrió el modal)
+    const productosSnap = await getDocs(collection(db, "productos"));
+    const productosAfectados = productosSnap.docs.filter(
+      d => d.data().categoria === nombre
+    );
+
+    const batch = writeBatch(db);
     for (const prodDoc of productosAfectados) {
-      await updateDoc(doc(db, "productos", prodDoc.id), {
+      batch.update(prodDoc.ref, {
         categoria: "Otros",
         fechaActualizacion: serverTimestamp()
       });
     }
+    batch.delete(doc(db, "categorias", id));
+    await batch.commit();
 
-    // 4. Borrar la categoría
-    await deleteDoc(doc(db, "categorias", idCategoria));
-
+    cerrarConfirmarBorrado();
     await cargarCategorias();
     mostrarToast("Categoría borrada");
   } catch (error) {
     console.error(error);
     mostrarToast("Error al borrar categoría");
+  } finally {
+    btnConfirmarBorrado.disabled = false;
+    btnConfirmarBorrado.textContent = "Borrar";
   }
-}
+});

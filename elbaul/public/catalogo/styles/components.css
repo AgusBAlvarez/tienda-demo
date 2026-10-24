@@ -593,3 +593,48 @@
 .modal-carrito:not(.active) {
   pointer-events: none;
 }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(2rem);
+  background: #3a2e26;
+  color: white;
+  padding: 0.9rem 1.5rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  z-index: 100;              /* ← bajo, para que NO tape modales */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== STOCK EN MODAL ===== */
+.modal-stock {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+  transition: color 0.2s ease;
+}
+
+.modal-stock.stock-bajo {
+  color: #c0392b;
+  font-weight: 700;
+}
+
+.modal-stock.stock-agotado {
+  color: #c0392b;
+  font-weight: 700;
+}

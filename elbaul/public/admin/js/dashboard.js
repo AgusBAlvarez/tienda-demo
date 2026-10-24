@@ -4,6 +4,7 @@ import {
   collection, getDocs, query, where, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { protegerPagina, configurarLogout } from "./auth-guard.js";
+import { esc } from "../../shared/utils.js";
 
 /* ===== PROTECCIÓN ===== */
 protegerPagina(async () => {
@@ -21,7 +22,6 @@ async function cargarStockBajo() {
   try {
     const snapshot = await getDocs(collection(db, "productos"));
 
-    // Filtrar productos activos con stock <= stockMinimo
     const productos = snapshot.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .filter(p => {
@@ -45,10 +45,10 @@ async function cargarStockBajo() {
 
       div.innerHTML = `
         <div>
-          <div class="nombre">${p.nombre}</div>
-          <div class="categoria">${p.categoria || "Sin categoría"}</div>
+          <div class="nombre">${esc(p.nombre)}</div>
+          <div class="categoria">${esc(p.categoria) || "Sin categoría"}</div>
         </div>
-        <div class="stock ${p.stock === 0 ? "" : ""}">
+        <div class="stock">
           ${p.stock} unidad${p.stock === 1 ? "" : "es"}
         </div>
       `;
@@ -90,7 +90,6 @@ async function cargarUltimasVentas() {
         ? formatearFecha(v.fecha.toDate())
         : "—";
 
-      // Resumen de items: "2x Cable HDMI, 1x Teclado"
       const resumen = (v.items || [])
         .map(item => `${item.cantidad}x ${item.nombre}`)
         .join(", ");
@@ -98,12 +97,12 @@ async function cargarUltimasVentas() {
       div.innerHTML = `
         <div class="info">
           <span class="fecha">${fecha}</span>
-          <span class="detalle">${resumen || "Sin items"}</span>
-          ${v.cliente ? `<span class="fecha" style="color:#C3977E;">Cliente: ${v.cliente}</span>` : ""}
+          <span class="detalle">${esc(resumen) || "Sin items"}</span>
+          ${v.cliente ? `<span class="fecha" style="color:#C3977E;">Cliente: ${esc(v.cliente)}</span>` : ""}
         </div>
         <div>
           <div class="total">$${(v.total || 0).toLocaleString("es-AR")}</div>
-          <div class="metodo">${v.metodoPago || "—"}</div>
+          <div class="metodo">${esc(v.metodoPago) || "—"}</div>
         </div>
       `;
 
@@ -134,7 +133,6 @@ function formatearFecha(date) {
 
   return date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit" });
 }
-
 
 /* ===== CARGAR PEDIDOS PENDIENTES ===== */
 async function cargarPedidosPendientes() {
@@ -172,7 +170,7 @@ async function cargarPedidosPendientes() {
 
       div.innerHTML = `
         <div>
-          <span class="codigo">#${p.codigo}</span>
+          <span class="codigo">#${esc(p.codigo)}</span>
           <span class="info"> · ${fecha} · ${cantItems} item(s)</span>
         </div>
         <span class="total">$${(p.total || 0).toLocaleString("es-AR")}</span>
@@ -181,7 +179,6 @@ async function cargarPedidosPendientes() {
       contenedor.appendChild(div);
     });
 
-    // Si hay más de 5, avisar
     if (snapshot.size > 5) {
       const extra = document.createElement("p");
       extra.className = "texto-vacio";
@@ -201,24 +198,19 @@ async function cargarResumenDia() {
   const contenedor = document.getElementById("resumenVentasDia");
 
   try {
-    // Inicio del día (00:00 de hoy)
     const inicioDia = new Date();
     inicioDia.setHours(0, 0, 0, 0);
 
     const q = query(
       collection(db, "ventas"),
+      where("fecha", ">=", inicioDia),
       orderBy("fecha", "desc")
     );
     const snapshot = await getDocs(q);
 
-    // Filtrar ventas de hoy y no anuladas
     const ventasHoy = snapshot.docs
       .map(d => d.data())
-      .filter(v => {
-        if (v.anulada) return false;
-        if (!v.fecha?.toDate) return false;
-        return v.fecha.toDate() >= inicioDia;
-      });
+      .filter(v => !v.anulada);
 
     const total = ventasHoy.reduce((sum, v) => sum + (v.total || 0), 0);
     const cantidad = ventasHoy.length;

@@ -1,0 +1,25 @@
+{
+  "name": "pagina-dbdm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AgusBAlvarez/el-baul-de-maribel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AgusBAlvarez/el-baul-de-maribel/issues"
+  },
+  "homepage": "https://github.com/AgusBAlvarez/el-baul-de-maribel#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5"
+  }
+}
+
+

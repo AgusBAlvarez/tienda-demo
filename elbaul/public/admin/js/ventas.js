@@ -2,9 +2,10 @@
 import { auth, db } from "../../shared/firebase-config.js";
 import {
   collection, getDocs, query, where, updateDoc, doc,
-  runTransaction, serverTimestamp
+  runTransaction, serverTimestamp, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { protegerPagina, configurarLogout } from "./auth-guard.js";
+import { esc } from "../../shared/utils.js";
 
 /* ===== ESTADO ===== */
 let itemsVenta = [];
@@ -67,13 +68,29 @@ async function buscarPorCodigo() {
       return;
     }
 
+    // NUEVO (Fix 3): Releer productos reales para no confiar en el pedido guardado
+    const itemsReales = [];
+    for (const item of pedido.items) {
+      const prodSnap = await getDoc(doc(db, "productos", item.productoId));
+      if (prodSnap.exists()) {
+        const prod = prodSnap.data();
+        const cant = Math.max(1, Math.floor(Number(item.cantidad) || 1));
+        itemsReales.push({
+          productoId: item.productoId,
+          nombre: prod.nombre,
+          precio: prod.precio,
+          cantidad: cant
+        });
+      }
+    }
+
+    if (itemsReales.length === 0) {
+      errorCodigo.textContent = "Los productos de este pedido ya no existen.";
+      return;
+    }
+
     pedidoActual = pedido;
-    itemsVenta = pedido.items.map(item => ({
-      productoId: item.productoId,
-      nombre: item.nombre,
-      precio: item.precioCongelado,
-      cantidad: item.cantidad
-    }));
+    itemsVenta = itemsReales;
 
     renderItems();
     actualizarTotal();
@@ -102,7 +119,7 @@ function renderItems() {
 
     div.innerHTML = `
       <div class="venta-item-info">
-        <h4>${item.nombre}</h4>
+        <h4>${esc(item.nombre)}</h4>
         <p class="precio">$${item.precio.toLocaleString("es-AR")}</p>
       </div>
       <div class="venta-item-cantidad">
@@ -113,7 +130,7 @@ function renderItems() {
       <div class="venta-item-subtotal">
         $${(item.precio * item.cantidad).toLocaleString("es-AR")}
       </div>
-      <button class="venta-item-quitar" data-index="${index}">🗑️</button>
+      <button class="venta-item-quitar" data-index="${index}"><i class="bi bi-trash"></i></button>
     `;
 
     contenedor.appendChild(div);
@@ -192,6 +209,7 @@ async function abrirBuscar() {
 function cerrarBuscar() {
   buscarOverlay.classList.remove("active");
   buscarModal.classList.remove("active");
+  productosCache = [];   // invalidar caché al cerrar
 }
 
 function normalizar(texto) {
@@ -226,8 +244,8 @@ buscarProductoInput.addEventListener("input", (e) => {
 
     div.innerHTML = `
       <div>
-        <div class="nombre">${p.nombre}</div>
-        <div class="detalles">Stock: ${p.stock ?? "—"} · ${p.categoria || "Sin categoría"}</div>
+        <div class="nombre">${esc(p.nombre)}</div>
+        <div class="detalles">Stock: ${p.stock ?? "—"} · ${esc(p.categoria) || "Sin categoría"}</div>
       </div>
       <span class="precio">$${(p.precio || 0).toLocaleString("es-AR")}</span>
     `;
@@ -273,8 +291,10 @@ btnCancelarConfirm.addEventListener("click", cerrarConfirmacion);
 confirmOverlay.addEventListener("click", cerrarConfirmacion);
 
 function abrirConfirmacion() {
-  // Leer el radio seleccionado actual (no depender de la variable)
   const radioSeleccionado = document.querySelector('input[name="metodoPago"]:checked');
+  const confirmError = document.getElementById("confirmError");
+
+  if (confirmError) confirmError.textContent = "";
 
   if (itemsVenta.length === 0) {
     mostrarToast("Agregá al menos un item");
@@ -286,14 +306,13 @@ function abrirConfirmacion() {
     return;
   }
 
-  // Actualizar metodoPago con lo que está marcado en el DOM
   metodoPago = radioSeleccionado.value;
 
   const total = itemsVenta.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
 
   const itemsHtml = itemsVenta.map(item => `
     <div class="confirm-item">
-      <span><span class="cant">${item.cantidad}x</span> ${item.nombre}</span>
+      <span><span class="cant">${item.cantidad}x</span> ${esc(item.nombre)}</span>
       <span>$${(item.precio * item.cantidad).toLocaleString("es-AR")}</span>
     </div>
   `).join("");
@@ -317,7 +336,7 @@ function abrirConfirmacion() {
         <strong>$${total.toLocaleString("es-AR")}</strong>
       </div>
     </div>
-    ${cliente ? `<p class="confirm-metodo">Cliente: <strong>${cliente}</strong></p>` : ""}
+    ${cliente ? `<p class="confirm-metodo">Cliente: <strong>${esc(cliente)}</strong></p>` : ""}
     <p class="confirm-metodo">Método de pago: <strong>${metodoTexto}</strong></p>
   `;
 
@@ -328,6 +347,10 @@ function abrirConfirmacion() {
 function cerrarConfirmacion() {
   confirmOverlay.classList.remove("active");
   confirmModal.classList.remove("active");
+  pedidoActual = null;
+
+  const confirmError = document.getElementById("confirmError");
+  if (confirmError) confirmError.textContent = "";
 }
 
 /* ===== ACEPTAR CONFIRMACIÓN — TRANSACCIÓN ===== */
@@ -376,7 +399,6 @@ btnAceptarConfirm.addEventListener("click", async () => {
         productosData.push({ ref: productosRefs[i], stockActual });
       }
 
-      // Leer pedido (si existe) ANTES de cualquier escritura
       let pedidoSnap = null;
       if (pedidoRef) {
         pedidoSnap = await tx.get(pedidoRef);
@@ -390,7 +412,6 @@ btnAceptarConfirm.addEventListener("click", async () => {
 
       // ===== FASE 2: TODAS LAS ESCRITURAS =====
 
-      // Descontar stock
       for (let i = 0; i < productosData.length; i++) {
         tx.update(productosData[i].ref, {
           stock: productosData[i].stockActual - itemsParaVenta[i].cantidad,
@@ -398,7 +419,6 @@ btnAceptarConfirm.addEventListener("click", async () => {
         });
       }
 
-      // Marcar pedido como confirmado
       if (pedidoRef) {
         tx.update(pedidoRef, {
           estado: "confirmado",
@@ -407,7 +427,6 @@ btnAceptarConfirm.addEventListener("click", async () => {
         });
       }
 
-      // Crear la venta
       const ventaData = {
         fecha: serverTimestamp(),
         total,
@@ -431,7 +450,14 @@ btnAceptarConfirm.addEventListener("click", async () => {
 
   } catch (error) {
     console.error(error);
-    mostrarToast(error.message || "Error al registrar la venta");
+    const mensaje = error.message || "Error al registrar la venta";
+
+    const confirmError = document.getElementById("confirmError");
+    if (confirmError) {
+      confirmError.textContent = mensaje;
+    } else {
+      mostrarToast(mensaje);
+    }
   } finally {
     btnAceptarConfirm.disabled = false;
     btnAceptarConfirm.textContent = "Sí, registrar";
@@ -505,12 +531,12 @@ async function cargarPendientes() {
 
       div.innerHTML = `
         <div>
-          <span class="codigo">#${p.codigo}</span>
+          <span class="codigo">#${esc(p.codigo)}</span>
           <span class="info"> · ${fecha} · ${cantItems} item(s)</span>
         </div>
         <div style="display:flex; align-items:center; gap:0.8rem;">
           <span class="total">$${(p.total || 0).toLocaleString("es-AR")}</span>
-          <button class="btn-abandonar" data-id="${p.id}" title="Marcar como abandonado">✕</button>
+          <button class="btn-abandonar" data-id="${p.id}" title="Marcar como abandonado"><i class="bi bi-x-lg"></i></button>
         </div>
       `;
 
@@ -587,3 +613,6 @@ function actualizarBotonConfirmar() {
 
 /* ===== INICIALIZAR ===== */
 cargarPendientes();
+
+// Refrescar cada 30s
+setInterval(cargarPendientes, 30000);

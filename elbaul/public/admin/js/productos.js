@@ -1,14 +1,14 @@
 /* ===== IMPORTS ===== */
 import { db } from "../../shared/firebase-config.js";
 import {
-  collection, getDocs, addDoc, updateDoc, doc, serverTimestamp
+  collection, getDocs, addDoc, updateDoc, doc, serverTimestamp, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { protegerPagina, configurarLogout } from "./auth-guard.js";
 
 
 /* ===== CLOUDINARY ===== */
 const CLOUD_NAME = "andvb0hj";
-const UPLOAD_PRESET = "elbaul_unsigned";
+const UPLOAD_PRESET = "tienda_demo_unsigned";
 
 /* ===== REFERENCIAS DOM ===== */
 const panelOverlay = document.getElementById("panelOverlay");
@@ -54,7 +54,7 @@ function abrirWidgetCloudinary() {
     {
       cloudName: CLOUD_NAME,
       uploadPreset: UPLOAD_PRESET,
-      folder: "elbaul/productos",
+      folder: "tienda-demo/productos",
       sources: ["local", "camera", "url"],
       multiple: false,
       maxFileSize: 2000000,
@@ -279,7 +279,7 @@ async function cargarProductos() {
         <td>${p.stock ?? "—"}</td>
         <td><span class="badge ${estado}">${estado}</span></td>
         <td>
-          <button class="btn-editar" data-id="${docSnap.id}">✏️</button>
+          <button class="btn-editar" data-id="${docSnap.id}"><i class="bi bi-pencil"></i></button>
           <button class="btn-estado ${claseBoton}" data-id="${docSnap.id}" ${deshabilitado}>${textoBoton}</button>
         </td>
       `;    
@@ -312,16 +312,24 @@ async function cargarProductos() {
 
 /* ===== CAMBIAR ESTADO ===== */
 async function cambiarEstado(id, estadoActual) {
+  // Calcular el nuevo estado PRIMERO
   let nuevoEstado;
-
   if (estadoActual === "borrador" || estadoActual === "inactivo") {
     nuevoEstado = "activo";
   } else {
     nuevoEstado = "inactivo";
   }
 
+  if (nuevoEstado === "activo") {
+    const prodSnap = await getDoc(doc(db, "productos", id));
+    if (prodSnap.exists() && !prodSnap.data().fotoUrl) {
+      mostrarToast("No se puede publicar sin foto");
+      return;
+    }
+  }
+
   try {
-      await updateDoc(doc(db, "productos", id), {
+    await updateDoc(doc(db, "productos", id), {
       estado: nuevoEstado,
       fechaActualizacion: serverTimestamp()
     });

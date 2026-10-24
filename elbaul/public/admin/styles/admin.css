@@ -1318,3 +1318,21 @@ body.admin-page {
   text-align: center;
   font-weight: 600;
 }
+
+/* ===== AJUSTES DE ICONOS (Bootstrap) ===== */
+.btn-editar i,
+.btn-eliminar i,
+.venta-item-quitar i,
+.btn-abandonar i {
+  font-size: 1rem;
+  color: inherit;
+  vertical-align: middle;
+}
+
+.btn-logout i {
+  margin-right: 0.3rem;
+}
+
+.btn-primary i {
+  margin-right: 0.2rem;
+}

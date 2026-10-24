@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Historial — El Baul de Maribel</title>
+  <title>Historial — Tienda Demo</title>
 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="icon" type="image/png" href="../assets/favicon.png">
   <link rel="stylesheet" href="../styles/admin.css">
 </head>
@@ -12,7 +13,7 @@
 
   <aside class="admin-sidebar">
     <div class="logo">
-      <img src="../assets/logo.png" alt="El Baul de Maribel">
+      <img src="../assets/logo.png" alt="Tienda Demo">
       <span>Panel Admin</span>
     </div>
     <nav>
@@ -26,7 +27,7 @@
 
   <header class="admin-header">
     <span class="user">Conectada como <strong id="userEmail"></strong></span>
-    <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
+    <button class="btn-logout" id="logoutBtn"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</button>
   </header>
 
   <main class="admin-main">
@@ -95,6 +96,7 @@
     </div>
   </div>
 
+  <div class="toast" id="toast"></div>
   <script type="module" src="../js/historial.js"></script>
 </body>
 </html>

@@ -6,8 +6,14 @@ import {
 
 /* ===== PROTECCIÓN DE PÁGINA ===== */
 export function protegerPagina(callback) {
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (!user) {
+      window.location.href = "../index.html";
+      return;
+    }
+    // Verificar si la cuenta fue deshabilitada
+    if (user.disabled || user.metadata?.disabled) {
+      await signOut(auth);
       window.location.href = "../index.html";
       return;
     }
