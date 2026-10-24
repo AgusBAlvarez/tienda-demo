@@ -33,7 +33,7 @@ body.login-page {
 }
 
 .login-logo img {
-  width: 100%;               /* 👈 antes 95% */
+  width: 80%;               /* 👈 antes 95% */
   height: auto;
 }
 
