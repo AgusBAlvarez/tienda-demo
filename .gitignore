@@ -1,22 +1,27 @@
+# Dependencias
 node_modules/
+
+# Sistema
 .DS_Store
 *.log
-.firebase/
 .vscode/
 
-# Playwright
+# Firebase
+.firebase/
+firebase-export/
+.firebaserc
+
+# Playwright (Resultados y caché)
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
 
-
-node_modules/
-.firebase/
-firebase-export/
-test-results/
-playwright-report/
-*.log
+# Entorno
 .env
 .env.*
+
+# Agentes de IA (Firebase Skills)
+.agents/
+.claude/
