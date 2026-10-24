@@ -25,3 +25,4 @@ firebase-export/
 # Agentes de IA (Firebase Skills)
 .agents/
 .claude/
+skills-lock.json
