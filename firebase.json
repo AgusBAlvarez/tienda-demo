@@ -16,7 +16,7 @@
     "rules": "firestore.rules"
   },
   "hosting": {
-    "public": "elbaul/public",
+    "public": "tienda-demo/public",
     "ignore": [
       "firebase.json",
       "**/.*",

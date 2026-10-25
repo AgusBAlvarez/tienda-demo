@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 import { loginRapido, asegurarUsuarioAdmin } from './helpers.js';
 
 const FS = 'http://127.0.0.1:8080/v1/projects/tienda-demo-5c115/databases/(default)/documents';
-const ADMIN = 'http://127.0.0.1:5500/elbaul/public/admin';
-const CLIENTE = 'http://127.0.0.1:5500/elbaul/public/catalogo/index.html';
+const ADMIN = 'http://127.0.0.1:5500/tienda-demo/public/admin';
+const CLIENTE = 'http://127.0.0.1:5500/tienda-demo/public/catalogo/index.html';
 const OWNER = { Authorization: 'Bearer owner' };
 
 test.describe('🎨 Banners', () => {

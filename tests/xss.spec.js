@@ -35,7 +35,7 @@ test.describe('🛡️ Seguridad: XSS', () => {
     expect(res.ok()).toBeTruthy();
 
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/ventas.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/ventas.html');
 
     // Abrir el modal de búsqueda
     await page.click('#btnAgregarManual');
@@ -81,7 +81,7 @@ test.describe('🛡️ Seguridad: XSS', () => {
     });
 
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/dashboard.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/dashboard.html');
 
     // Esperar a que el dashboard cargue los pedidos
     await page.waitForSelector('#listaPedidosPendientes .pedido-pendiente-dash', { timeout: 10000 });
@@ -136,7 +136,7 @@ test.describe('🛡️ Seguridad: XSS', () => {
     expect(res.ok()).toBeTruthy();
 
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/historial.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/historial.html');
 
     // Esperar a que la tabla tenga al menos una fila con datos
     await page.waitForSelector('#tablaHistorial tr', { timeout: 10000 });

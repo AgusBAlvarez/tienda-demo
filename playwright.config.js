@@ -8,7 +8,7 @@ export default defineConfig({
   globalSetup: './tests/global-setup.js',
   reporter: 'html',
   use: {
-    baseURL: 'http://127.0.0.1:5500/elbaul/public/admin',
+    baseURL: 'http://127.0.0.1:5500/tienda-demo/public/admin',
     video: 'on',
     trace: 'on-first-retry',
   },

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrar venta — Tienda Demo</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../styles/admin.css">
+</head>
+<body class="admin-page">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="admin-sidebar">
+    <div class="logo">
+      <img src="../assets/logo.png" alt="Tienda Demo">
+      <span>Panel Admin</span>
+    </div>
+    <nav>
+      <a href="./dashboard.html">Dashboard</a>
+      <a href="./productos.html">Productos</a>
+      <a href="./categorias.html">Categorías</a>
+      <a href="./banners.html">Banners / Ofertas</a>
+      <a href="./ventas.html" class="active">Registrar venta</a>
+      <a href="./historial.html">Historial</a>
+    </nav>
+  </aside>
+
+  <!-- ===== HEADER ===== -->
+  <header class="admin-header">
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú"><i class="bi bi-list"></i></button>
+    <span class="user">Conectada como <strong id="userEmail"></strong></span>
+    <button class="btn-logout" id="logoutBtn"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</button>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main class="admin-main">
+    <h1>Registrar venta</h1>
+
+    <!-- ===== BÚSQUEDA POR CÓDIGO ===== -->
+    <section class="venta-busqueda">
+      <label for="inputCodigo">Buscar pedido por código:</label>
+      <div class="venta-busqueda-row">
+        <input type="text" id="inputCodigo" placeholder="Ej: A7K3" maxlength="6" autocomplete="off">
+        <button class="btn-primary" id="btnBuscarCodigo">Buscar</button>
+      </div>
+      <p class="form-error" id="errorCodigo"></p>
+    </section>
+
+    <!-- ===== PEDIDOS PENDIENTES ===== -->
+    <section class="venta-pendientes">
+      <h2>Pedidos pendientes recientes</h2>
+      <div id="listaPendientes">
+        <p class="texto-vacio">Cargando...</p>
+      </div>
+    </section>
+
+    <!-- ===== ITEMS DE LA VENTA ===== -->
+    <section class="venta-items">
+      <h2>Items de la venta</h2>
+      <div id="itemsVenta">
+        <p class="texto-vacio">Buscá un código o agregá productos manualmente.</p>
+      </div>
+
+      <button class="btn-secundario" id="btnAgregarManual">+ Agregar producto manualmente</button>
+    </section>
+
+    <!-- ===== MÉTODO DE PAGO ===== -->
+    <section class="venta-pago">
+      <h2>Método de pago</h2>
+      <div class="metodos-pago">
+        <label><input type="radio" name="metodoPago" value="transferencia"> Transferencia</label>
+        <label><input type="radio" name="metodoPago" value="efectivo"> Efectivo</label>
+        <label><input type="radio" name="metodoPago" value="mercadolibre"> Mercado Libre</label>
+        <label><input type="radio" name="metodoPago" value="credito"> Crédito</label>
+        <label><input type="radio" name="metodoPago" value="debito"> Débito</label>
+      </div>
+    </section>
+
+        <!-- ===== CLIENTE ===== -->
+    <section class="venta-cliente">
+      <label for="inputCliente">Cliente (opcional)</label>
+      <input type="text" id="inputCliente" placeholder="Nombre del cliente" maxlength="60" autocomplete="off">
+    </section>
+
+    <!-- ===== TOTAL Y CONFIRMAR ===== -->
+    <section class="venta-footer">
+      <div class="venta-total">
+        <span>Total:</span>
+        <strong id="totalVenta">$0</strong>
+      </div>
+      <button class="btn-primary btn-confirmar" id="btnConfirmarVenta" disabled>
+        Confirmar pago y registrar venta
+      </button>
+    </section>
+    <footer class="admin-footer">
+        <p>
+            Demo de portfolio · Desarrollado por <strong>Agustina Belén Alvarez</strong>
+            · <a href="https://linkedin.com/in/agustinabelenalvarez" target="_blank">LinkedIn</a>
+            · <a href="https://github.com/AgusBAlvarez/tienda-demo" target="_blank">GitHub</a>
+        </p>
+    </footer>
+  </main>
+
+    <!-- ===== MODAL BUSCAR PRODUCTO ===== -->
+  <div class="modal-overlay-admin" id="buscarOverlay"></div>
+
+  <div class="modal-admin modal-buscar" id="buscarModal">
+    <h2>Agregar producto</h2>
+    <input type="text" id="buscarProductoInput" placeholder="Buscar producto..." autocomplete="off">
+    <div class="buscar-resultados" id="buscarResultados">
+      <p class="texto-vacio">Escribí para buscar productos.</p>
+    </div>
+    <div class="modal-admin-botones">
+      <button class="btn-secundario" id="btnCerrarBuscar">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ===== MODAL CONFIRMACIÓN ===== -->
+  <div class="modal-overlay-admin" id="confirmOverlay"></div>
+  <div class="modal-admin" id="confirmModal">
+    <h2>¿Registrar esta venta?</h2>
+    <div class="confirm-resumen" id="confirmResumen"></div>
+    <p class="form-error" id="confirmError" style="margin-top:1rem;"></p>
+    <div class="modal-admin-botones">
+      <button class="btn-secundario" id="btnCancelarConfirm">Cancelar</button>
+      <button class="btn-primary" id="btnAceptarConfirm">Sí, registrar</button>
+    </div>
+  </div>
+
+  <script type="module" src="../js/ventas.js"></script>
+</body>
+</html>

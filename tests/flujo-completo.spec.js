@@ -19,7 +19,7 @@ test.describe('🔐 Sección 1: Autenticación', () => {
   });
 
   test('Credenciales inválidas muestran error', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/index.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/index.html');
     await page.fill('#email', 'noexiste@tienda-demo.com');
     await page.fill('#password', 'mal');
     await page.click('.btn-login');
@@ -45,7 +45,7 @@ test.describe('📂 Sección 2: Categorías', () => {
 
   test('Debe crear, editar y borrar una categoría', async ({ page }) => {
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/categorias.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/categorias.html');
 
     const nombre = `Cat Test ${Date.now()}`;
 
@@ -70,7 +70,7 @@ test.describe('📂 Sección 2: Categorías', () => {
 
   test('No permite categorías duplicadas', async ({ page }) => {
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/categorias.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/categorias.html');
 
     await page.click('.header-con-accion .btn-primary');
     await page.fill('#nombreCategoria', 'Otros');
@@ -81,7 +81,7 @@ test.describe('📂 Sección 2: Categorías', () => {
 
   test('La categoría "Otros" no se puede editar ni borrar', async ({ page }) => {
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/categorias.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/categorias.html');
 
     const filaOtros = page.locator('#tablaCategorias tr', { hasText: 'Otros' });
     await expect(filaOtros).toBeVisible({ timeout: 10000 });
@@ -96,7 +96,7 @@ test.describe('📂 Sección 2: Categorías', () => {
 test.describe('📦 Sección 3: Productos', () => {
   test('Debe cargar un producto nuevo', async ({ page }) => {
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/productos.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/productos.html');
 
     await page.click('.header-con-accion .btn-primary');
     await expect(page.locator('#panelProducto')).toHaveClass(/active/);
@@ -112,7 +112,7 @@ test.describe('📦 Sección 3: Productos', () => {
 
   test('Validación: campos obligatorios', async ({ page }) => {
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/productos.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/productos.html');
 
     await page.click('.header-con-accion .btn-primary');
     await page.click('#btnGuardar');
@@ -153,7 +153,7 @@ test.describe('💰 Sección 4: Registrar Venta', () => {
 
   test('Debe registrar una venta y descontar stock', async ({ page }) => {
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/ventas.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/ventas.html');
 
     await page.click('#btnAgregarManual');
     await page.fill('#buscarProductoInput', 'Producto de Prueba Playwright');
@@ -173,7 +173,7 @@ test.describe('💰 Sección 4: Registrar Venta', () => {
 
   test('Bloquea venta sin método de pago', async ({ page }) => {
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/ventas.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/ventas.html');
 
     await page.click('#btnAgregarManual');
     await page.fill('#buscarProductoInput', 'Producto de Prueba Playwright');
@@ -231,7 +231,7 @@ test.describe('🧾 Sección 5: Historial', () => {
 
   test('Muestra la venta y abre el detalle', async ({ page }) => {
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/historial.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/historial.html');
 
     await expect(page.locator('#tablaHistorial')).toContainText('Cliente Historial', { timeout: 10000 });
 
@@ -243,7 +243,7 @@ test.describe('🧾 Sección 5: Historial', () => {
 
   test('Filtro "Hoy" no rompe con ventas sin fecha', async ({ page }) => {
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/historial.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/historial.html');
 
     await page.selectOption('#filtroRango', 'hoy');
     await expect(page.locator('#totales')).toBeVisible();
@@ -314,7 +314,7 @@ test.describe('🚫 Sección 6: Anular Venta', () => {
 
   test('Anular venta devuelve stock y marca como anulada', async ({ page, request }) => {
     await loginRapido(page);
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/historial.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/historial.html');
 
     await expect(page.locator('#tablaHistorial')).toContainText('Cliente Anular', { timeout: 10000 });
     await page.locator('#tablaHistorial tr', { hasText: 'Cliente Anular' }).click();
@@ -411,7 +411,7 @@ test.describe('🐛 Sección 8: Regresiones', () => {
 
     await loginRapido(page);
 
-    await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/ventas.html');
+    await page.goto('http://127.0.0.1:5500/tienda-demo/public/admin/pages/ventas.html');
 
     await page.click('#btnAgregarManual');
     await page.fill('#buscarProductoInput', 'Nada');

@@ -6,16 +6,16 @@
   "scripts": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AgusBAlvarez/el-baul-de-maribel.git"
+    "url": "git+https://github.com/AgusBAlvarez/tienda-demo.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/AgusBAlvarez/el-baul-de-maribel/issues"
+    "url": "https://github.com/AgusBAlvarez/tienda-demo/issues"
   },
-  "homepage": "https://github.com/AgusBAlvarez/el-baul-de-maribel#readme",
+  "homepage": "https://github.com/AgusBAlvarez/tienda-demo#readme",
   "devDependencies": {
     "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5"
