@@ -4,8 +4,8 @@ import {
     collection, getDocs, addDoc, updateDoc, doc, serverTimestamp,
     deleteDoc, getDoc, setDoc, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { protegerPagina, configurarLogout } from "./auth-guard.js";
-
+import { protegerPagina, configurarLogout, configurarMenuHamburguesa } from "./auth-guard.js";
+import { esc } from "../../shared/utils.js";
 /* ===== REFERENCIAS DOM ===== */
 const panelOverlay = document.getElementById("panelOverlay");
 const panelCategoria = document.getElementById("panelCategoria");
@@ -50,6 +50,7 @@ protegerPagina(async () => {
   await cargarCategorias();
 });
 configurarLogout();
+configurarMenuHamburguesa(); 
 
 /* ===== ABRIR / CERRAR PANEL ===== */
 function abrirPanel(categoria = null) {
@@ -252,13 +253,13 @@ async function cargarCategorias() {
       const cantidad = conteo[c.nombre] || 0;
 
       tr.innerHTML = `
-        <td>${c.nombre || "—"}</td>
+        <td>${esc(c.nombre) || "—"}</td>
         <td>${cantidad}</td>
         <td>
           ${esFija
             ? `<span style="color:#7a6a5f; font-size:0.8rem;">—</span>`
             : `<button class="btn-editar" data-id="${docSnap.id}"><i class="bi bi-pencil"></i></button>
-          <button class="btn-eliminar" data-id="${docSnap.id}" data-nombre="${c.nombre}"><i class="bi bi-trash"></i></button>`}
+          <button class="btn-eliminar" data-id="${docSnap.id}" data-nombre="${esc(c.nombre)}"><i class="bi bi-trash"></i></button>`}
         </td>
       `;
 

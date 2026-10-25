@@ -3,8 +3,8 @@ import { db } from "../../shared/firebase-config.js";
 import {
   collection, getDocs, addDoc, updateDoc, doc, serverTimestamp, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { protegerPagina, configurarLogout } from "./auth-guard.js";
-
+import { protegerPagina, configurarLogout, configurarMenuHamburguesa } from "./auth-guard.js";
+import { esc } from "../../shared/utils.js";
 
 /* ===== CLOUDINARY ===== */
 const CLOUD_NAME = "andvb0hj";
@@ -32,11 +32,12 @@ protegerPagina(async () => {
   await cargarProductos();
 });
 configurarLogout();
+configurarMenuHamburguesa(); 
 
 /* ===== PREVIEW DE FOTO ===== */
 function mostrarFoto(url) {
   if (url) {
-    fotoPreview.innerHTML = `<img src="${url}" alt="Foto">`;
+    fotoPreview.innerHTML = `<img src="${esc(url)}" alt="Foto">`;
     btnQuitarFoto.style.display = "inline-block";
     btnSubirFoto.textContent = "Cambiar foto";
     fotoUrlInput.value = url;
@@ -100,6 +101,7 @@ async function abrirPanel(producto = null) {
     selectCat.value = catProducto;
     document.getElementById("descripcion").value = producto.data.descripcion || "";
     document.getElementById("precio").value = producto.data.precio ?? "";
+    document.getElementById("precioOferta").value = producto.data.precioOferta ?? "";
     document.getElementById("stock").value = producto.data.stock ?? "";
     document.getElementById("stockMinimo").value = producto.data.stockMinimo ?? 3;
     mostrarFoto(producto.data.fotoUrl || "");
@@ -136,6 +138,8 @@ formProducto.addEventListener("submit", async (e) => {
   const nombre = document.getElementById("nombre").value.trim();
   const categoria = document.getElementById("categoria").value;
   const precio = Number(document.getElementById("precio").value);
+  const precioOfertaInput = document.getElementById("precioOferta").value;
+  const precioOferta = precioOfertaInput ? Number(precioOfertaInput) : 0;
   const stock = Number(document.getElementById("stock").value);
   const stockMinimo = Number(document.getElementById("stockMinimo").value);
 
@@ -148,6 +152,7 @@ formProducto.addEventListener("submit", async (e) => {
     nombre,
     categoria,
     precio,
+    precioOferta,
     stock,
     stockMinimo,
     descripcion: document.getElementById("descripcion").value.trim(),
@@ -242,47 +247,57 @@ async function cargarProductos() {
       const p = docSnap.data();
       const tr = document.createElement("tr");
 
+      // Foto
       const fotoHtml = p.fotoUrl
-        ? `<div class="foto"><img src="${p.fotoUrl}" alt="${p.nombre}"></div>`
+        ? `<div class="foto"><img src="${esc(p.fotoUrl)}" alt="${esc(p.nombre)}"></div>`
         : `<div class="foto">📦</div>`;
 
-        // Determinar texto y clase del botón de estado
-        const estado = p.estado || "borrador";
-        const tieneFoto = !!p.fotoUrl;
-        let textoBoton = "";
-        let claseBoton = "";
-        let deshabilitado = "";
+      // Precio (con o sin oferta)
+      let precioHtml = `$${(p.precio || 0).toLocaleString("es-AR")}`;
+      if (p.precioOferta && p.precioOferta > 0) {
+        precioHtml = `
+          <span style="text-decoration: line-through; color: #a09b96; font-size: 0.8rem;">$${(p.precio || 0).toLocaleString("es-AR")}</span><br>
+          <span>$${p.precioOferta.toLocaleString("es-AR")}</span>
+        `;
+      }
 
-        if (estado === "borrador") {
-          if (tieneFoto) {
-            textoBoton = "Publicar";
-            claseBoton = "publicar";
-          } else {
-            textoBoton = "Falta foto";
-            claseBoton = "publicar";
-            deshabilitado = "disabled";
-          }
-        } else if (estado === "activo") {
-          textoBoton = "Desactivar";
-          claseBoton = "desactivar";
-        } else {
-          textoBoton = "Activar";
+      // Botón de estado
+      const estado = p.estado || "borrador";
+      const tieneFoto = !!p.fotoUrl;
+      let textoBoton = "";
+      let claseBoton = "";
+      let deshabilitado = "";
+
+      if (estado === "borrador") {
+        if (tieneFoto) {
+          textoBoton = "Publicar";
           claseBoton = "publicar";
-          if (!tieneFoto) deshabilitado = "disabled";
+        } else {
+          textoBoton = "Falta foto";
+          claseBoton = "publicar";
+          deshabilitado = "disabled";
         }
+      } else if (estado === "activo") {
+        textoBoton = "Desactivar";
+        claseBoton = "desactivar";
+      } else {
+        textoBoton = "Activar";
+        claseBoton = "publicar";
+        if (!tieneFoto) deshabilitado = "disabled";
+      }
 
       tr.innerHTML = `
         <td>${fotoHtml}</td>
-        <td>${p.nombre || "—"}</td>
-        <td>${p.categoria || "—"}</td>
-        <td>$${(p.precio || 0).toLocaleString("es-AR")}</td>
+        <td>${esc(p.nombre) || "—"}</td>
+        <td>${esc(p.categoria) || "—"}</td>
+        <td>${precioHtml}</td>
         <td>${p.stock ?? "—"}</td>
         <td><span class="badge ${estado}">${estado}</span></td>
         <td>
           <button class="btn-editar" data-id="${docSnap.id}"><i class="bi bi-pencil"></i></button>
           <button class="btn-estado ${claseBoton}" data-id="${docSnap.id}" ${deshabilitado}>${textoBoton}</button>
         </td>
-      `;    
+      `;
 
       // Conectar botón editar
       tr.querySelector(".btn-editar").addEventListener("click", () => {
@@ -308,7 +323,6 @@ async function cargarProductos() {
     `;
   }
 }
-
 
 /* ===== CAMBIAR ESTADO ===== */
 async function cambiarEstado(id, estadoActual) {

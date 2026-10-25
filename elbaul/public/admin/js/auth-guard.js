@@ -33,3 +33,39 @@ export function configurarLogout() {
     });
   }
 }
+
+/* ===== MENÚ HAMBURGUESA (responsive) ===== */
+export function configurarMenuHamburguesa() {
+  const menuToggle = document.getElementById("menuToggle");
+  const sidebar = document.querySelector(".admin-sidebar");
+  const overlay = document.querySelector(".admin-overlay");
+
+  if (!menuToggle || !sidebar) return;
+
+  // Si el overlay no existe, lo creamos
+  if (!overlay) {
+    const div = document.createElement("div");
+    div.className = "admin-overlay";
+    document.body.appendChild(div);
+  }
+
+  const overlayFinal = document.querySelector(".admin-overlay");
+
+  const abrirMenu = () => {
+    sidebar.classList.add("active");
+    overlayFinal.classList.add("active");
+  };
+
+  const cerrarMenu = () => {
+    sidebar.classList.remove("active");
+    overlayFinal.classList.remove("active");
+  };
+
+  menuToggle.addEventListener("click", abrirMenu);
+  overlayFinal.addEventListener("click", cerrarMenu);
+
+  // Cerrar al hacer click en un link del menú
+  sidebar.querySelectorAll("nav a").forEach(link => {
+    link.addEventListener("click", cerrarMenu);
+  });
+}

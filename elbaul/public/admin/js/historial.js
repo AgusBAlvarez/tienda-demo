@@ -4,7 +4,7 @@ import {
   collection, getDocs, orderBy, query, doc, updateDoc,
   runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { protegerPagina, configurarLogout } from "./auth-guard.js";
+import { protegerPagina, configurarLogout, configurarMenuHamburguesa } from "./auth-guard.js";
 import { esc } from "../../shared/utils.js";
 
 /* ===== ESTADO ===== */
@@ -18,6 +18,7 @@ protegerPagina(async () => {
   await cargarVentas();
 });
 configurarLogout();
+configurarMenuHamburguesa(); 
 
 /* ===== FILTRO ===== */
 document.getElementById("filtroRango").addEventListener("change", (e) => {

@@ -4,7 +4,7 @@ import {
   collection, getDocs, query, where, updateDoc, doc,
   runTransaction, serverTimestamp, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { protegerPagina, configurarLogout } from "./auth-guard.js";
+import { protegerPagina, configurarLogout, configurarMenuHamburguesa } from "./auth-guard.js";
 import { esc } from "../../shared/utils.js";
 
 /* ===== ESTADO ===== */
@@ -15,6 +15,7 @@ let metodoPago = null;
 /* ===== PROTECCIÓN ===== */
 protegerPagina();
 configurarLogout();
+configurarMenuHamburguesa(); 
 
 /* ===== TOAST ===== */
 let toastTimeout;

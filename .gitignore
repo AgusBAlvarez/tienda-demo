@@ -3,13 +3,16 @@ node_modules/
 
 # Sistema
 .DS_Store
+Thumbs.db
+desktop.ini
 *.log
 .vscode/
 
 # Firebase
 .firebase/
 firebase-export/
-.firebaserc
+serviceAccount*.json
+*-firebase-adminsdk-*.json
 
 # Playwright (Resultados y caché)
 /test-results/
@@ -21,6 +24,7 @@ firebase-export/
 # Entorno
 .env
 .env.*
+!.env.example
 
 # Agentes de IA (Firebase Skills)
 .agents/

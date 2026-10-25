@@ -124,11 +124,16 @@ async function cargarCategorias() {
         contenedor.querySelectorAll(".categoria").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         categoriaActiva = btn.dataset.categoria;
+        
+        // Limpiar el buscador al cambiar de categoría
+        textoBusqueda = "";
+        if (buscadorInput) buscadorInput.value = "";
+        
         aplicarFiltros();
       });
     });
 
-    // ── NUEVO: Llenar el submenú del menú lateral (DENTRO de la función) ──
+        // ── Llenar el submenú del menú lateral ──
     const subMenu = document.getElementById("subMenuCategorias");
     const linkCategorias = document.getElementById("linkMenuCategorias");
     const flecha = document.getElementById("flechaCategorias");
@@ -143,7 +148,13 @@ async function cargarCategorias() {
         e.preventDefault();
         categoriaActiva = "todos";
         contenedor.querySelectorAll(".categoria").forEach(b => b.classList.remove("active"));
-        contenedor.querySelector('[data-categoria="todos"]').classList.add("active");
+        const chipTodos = contenedor.querySelector('[data-categoria="todos"]');
+        if (chipTodos) chipTodos.classList.add("active");
+
+        // Limpiar buscador
+        textoBusqueda = "";
+        if (buscadorInput) buscadorInput.value = "";
+
         aplicarFiltros();
         cerrarMenu();
       });
@@ -159,6 +170,11 @@ async function cargarCategorias() {
           contenedor.querySelectorAll(".categoria").forEach(b => b.classList.remove("active"));
           const chipActivo = contenedor.querySelector(`[data-categoria="${nombre}"]`);
           if (chipActivo) chipActivo.classList.add("active");
+
+          // Limpiar buscador
+          textoBusqueda = "";
+          if (buscadorInput) buscadorInput.value = "";
+
           aplicarFiltros();
           cerrarMenu();
         });
@@ -180,7 +196,6 @@ async function cargarCategorias() {
         linkCategorias.dataset.listener = "true";
       }
     }
-
   } catch (error) {
     console.error("Error al cargar categorías:", error);
   }
@@ -219,13 +234,16 @@ async function cargarProductos() {
 /* ===== FILTROS ===== */
 function aplicarFiltros() {
   let filtrados = [...productos];
-  if (categoriaActiva !== "todos") {
-    filtrados = filtrados.filter(p => (p.categoria || "Otros") === categoriaActiva);
-  }
+
+  // Si hay texto de búsqueda, ignoramos la categoría para mostrar resultados globales
   if (textoBusqueda.trim() !== "") {
     const texto = normalizar(textoBusqueda);
     filtrados = filtrados.filter(p => normalizar(p.nombre).includes(texto));
+  } else if (categoriaActiva !== "todos") {
+    // Si no hay búsqueda, filtramos por categoría
+    filtrados = filtrados.filter(p => (p.categoria || "Otros") === categoriaActiva);
   }
+
   renderProductos(filtrados);
 }
 
@@ -242,10 +260,21 @@ function renderProductos(lista) {
       ? `<div class="img"><img src="${esc(p.fotoUrl)}" alt="${esc(p.nombre)}" style="width:100%;height:100%;object-fit:cover;"></div>`
       : `<div class="img">📦</div>`;
 
+    // Lógica de precios
+    let precioHtml = `<p>$${(p.precio || 0).toLocaleString("es-AR")}</p>`;
+    if (p.precioOferta && p.precioOferta > 0) {
+      precioHtml = `
+        <div class="precio-oferta-container">
+          <span class="precio-tachado">$${(p.precio || 0).toLocaleString("es-AR")}</span>
+          <span class="precio-final">$${p.precioOferta.toLocaleString("es-AR")}</span>
+        </div>
+      `;
+    }
+
     div.innerHTML = `
       ${fotoHtml}
       <h3>${esc(p.nombre) || "Sin nombre"}</h3>
-      <p>$${(p.precio || 0).toLocaleString("es-AR")}</p>
+      ${precioHtml}
     `;
 
     div.style.cursor = "pointer";
@@ -255,13 +284,20 @@ function renderProductos(lista) {
 }
 
 /* ===== BUSCADOR ===== */
-const buscadorInput = document.getElementById("buscadorInput");
-if (buscadorInput) {
-  buscadorInput.addEventListener("input", (e) => {
-    textoBusqueda = e.target.value;
-    aplicarFiltros();
-  });
-}
+buscadorInput.addEventListener("input", (e) => {
+  textoBusqueda = e.target.value;
+  
+  // Si está buscando, desactivamos los chips de categoría visualmente
+  if (textoBusqueda.trim() !== "") {
+    const contenedor = document.getElementById("categorias");
+    contenedor.querySelectorAll(".categoria").forEach(b => b.classList.remove("active"));
+    const chipTodos = contenedor.querySelector('[data-categoria="todos"]');
+    if (chipTodos) chipTodos.classList.add("active");
+    categoriaActiva = "todos";
+  }
+  
+  aplicarFiltros();
+});
 
 /* ===== MODAL PRODUCTO ===== */
 const modalOverlay = document.getElementById("modalOverlay");
@@ -308,9 +344,21 @@ function abrirModalProducto(producto) {
   modalNombre.textContent = producto.nombre || "Sin nombre";
   modalDescripcion.textContent = producto.descripcion || "";
   modalDescripcion.style.display = producto.descripcion ? "block" : "none";
-  modalPrecio.textContent = `$${(producto.precio || 0).toLocaleString("es-AR")}`;
-  cantValor.textContent = cantidadActual;
 
+  // Precio (con o sin oferta)
+  if (producto.precioOferta && producto.precioOferta > 0) {
+    modalPrecio.innerHTML = `
+      <span style="text-decoration: line-through; color: #999; font-size: 1rem; margin-right: 0.5rem;">$${(producto.precio || 0).toLocaleString("es-AR")}</span>
+      <span>$${producto.precioOferta.toLocaleString("es-AR")}</span>
+      <span style="display: block; font-size: 0.8rem; color: var(--primary); font-weight: 600; margin-top: 0.3rem;">
+        <i class="bi bi-tag-fill"></i> En oferta
+      </span>
+    `;
+  } else {
+    modalPrecio.textContent = `$${(producto.precio || 0).toLocaleString("es-AR")}`;
+  }
+
+  cantValor.textContent = cantidadActual;
   actualizarLabelStock(producto.stock || 0, cantidadActual);
 
   const stock = producto.stock || 0;
@@ -323,13 +371,17 @@ function abrirModalProducto(producto) {
 
   modalOverlay.classList.add("active");
   modalProducto.classList.add("active");
+  document.body.classList.add("modal-abierto"); 
+  
 }
 
 function cerrarModalProducto() {
   modalOverlay.classList.remove("active");
   modalProducto.classList.remove("active");
+  document.body.classList.remove("modal-abierto"); 
   productoActual = null;
   cantidadActual = 1;
+  
 }
 
 cantMenos.addEventListener("click", () => {
@@ -355,6 +407,11 @@ btnAgregarModal.addEventListener("click", () => {
   const cantidadEnCarrito = existente ? existente.cantidad : 0;
   const stockDisponible = productoActual.stock || 0;
 
+  // Precio final: de oferta si existe, si no el original
+  const precioFinal = (productoActual.precioOferta && productoActual.precioOferta > 0)
+    ? productoActual.precioOferta
+    : productoActual.precio;
+
   if (cantidadEnCarrito + cantidadActual > stockDisponible) {
     mostrarToast(`Solo hay ${stockDisponible} de "${productoActual.nombre}"`);
     return;
@@ -366,7 +423,7 @@ btnAgregarModal.addEventListener("click", () => {
     carrito.push({
       productoId: productoActual.id,
       nombre: productoActual.nombre,
-      precio: productoActual.precio,
+      precio: precioFinal, // ← Precio final (con o sin oferta)
       fotoUrl: productoActual.fotoUrl,
       cantidad: cantidadActual
     });
@@ -376,7 +433,7 @@ btnAgregarModal.addEventListener("click", () => {
   actualizarContadorCarrito();
   cerrarModalProducto();
   mostrarModalConfirmacion();
-});
+});;
 
 modalVolver.addEventListener("click", cerrarModalProducto);
 modalOverlay.addEventListener("click", cerrarModalProducto);
@@ -606,7 +663,7 @@ document.getElementById("btnWhatsApp").addEventListener("click", () => {
   });
   mensaje += `\nTotal: $${total.toLocaleString("es-AR")}`;
 
-  const numero = "5492616946182";
+  const numero = "5490000000000";
   const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
   window.open(url, "_blank");
 });
@@ -628,15 +685,21 @@ function resetearVistaCarrito() {
 /* ===== CARRUSEL DE BANNERS ===== */
 async function cargarBanners() {
   const contenedor = document.getElementById("carruselBanners");
+  const seccionBanner = document.querySelector(".banner"); // ← NUEVO
   
   try {
     const snapshot = await getDocs(collection(db, "banners"));
     const banners = snapshot.docs.map(d => d.data());
     
     if (banners.length === 0) {
-      contenedor.innerHTML = `<div class="banner-img"></div>`;
+      // Si no hay banners, ocultamos toda la sección
+      if (seccionBanner) seccionBanner.style.display = "none"; // ← NUEVO
+      contenedor.innerHTML = ""; // ← NUEVO: limpiamos el bloque gris
       return;
     }
+
+    // Si SÍ hay banners, mostramos la sección
+    if (seccionBanner) seccionBanner.style.display = "block"; // ← NUEVO
 
     contenedor.innerHTML = "";
     
@@ -662,16 +725,17 @@ async function cargarBanners() {
         img.style.cursor = "pointer";
         img.addEventListener("click", () => {
           categoriaActiva = b.categoria;
-          
-          // Actualizar visualmente los chips de arriba
+
           const chips = document.querySelectorAll(".categoria");
           chips.forEach(c => c.classList.remove("active"));
           const chipActivo = document.querySelector(`[data-categoria="${b.categoria}"]`);
           if (chipActivo) chipActivo.classList.add("active");
-          
+
+          // Limpiar buscador
+          textoBusqueda = "";
+          if (buscadorInput) buscadorInput.value = "";
+
           aplicarFiltros();
-          
-          // Hacemos scroll suave hasta los productos
           document.getElementById("productos").scrollIntoView({ behavior: "smooth" });
         });
       } else if (b.link) {

@@ -4,6 +4,8 @@
   border-radius: 10px;
   padding: 0.6rem;
   text-align: left;
+  position: relative;
+  z-index: 1; /* Para que no se superponga a las categorías */
 }
 
 .producto .img {
@@ -36,7 +38,7 @@
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease;
-  z-index: 250;
+  z-index: 250; /* Debajo del menú, arriba del contenido normal */
   pointer-events: none;
 }
 
@@ -66,6 +68,9 @@
 }
 
 .modal-volver {
+  position: sticky;
+  top: 1rem;
+  left: 0;
   background: var(--card-bg);
   border: none;
   width: 40px;
@@ -78,6 +83,19 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 1rem;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Evitar scroll del fondo cuando hay un modal abierto */
+body.modal-abierto {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.modal-volver.visible {
+  opacity: 1;
+  visibility: visible;
 }
 
 .modal-img {
@@ -607,7 +625,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  z-index: 100;              /* ← bajo, para que NO tape modales */
+  z-index: 100; /* Bajo, para no tapar modales */
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease, transform 0.3s ease;
@@ -637,4 +655,24 @@
 .modal-stock.stock-agotado {
   color: #c0392b;
   font-weight: 700;
+}
+
+/* ===== PRECIOS EN OFERTA ===== */
+.precio-oferta-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.precio-tachado {
+  text-decoration: line-through;
+  color: #a09b96;
+  font-size: 0.8rem;
+}
+
+.precio-final {
+  color: #2e7d32; 
+  font-weight: 700;
+  font-size: 0.95rem;
 }

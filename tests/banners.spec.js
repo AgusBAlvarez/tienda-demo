@@ -1,25 +1,30 @@
 import { test, expect } from '@playwright/test';
-import { loginRapido } from './helpers.js';
+import { loginRapido, asegurarUsuarioAdmin } from './helpers.js';
 
 const FS = 'http://127.0.0.1:8080/v1/projects/tienda-demo-5c115/databases/(default)/documents';
 const ADMIN = 'http://127.0.0.1:5500/elbaul/public/admin';
 const CLIENTE = 'http://127.0.0.1:5500/elbaul/public/catalogo/index.html';
+const OWNER = { Authorization: 'Bearer owner' };
 
 test.describe('🎨 Banners', () => {
+  test.beforeAll(async ({ request }) => {
+    await asegurarUsuarioAdmin(request);
+  });
+
   test.beforeEach(async ({ request }) => {
     // Limpiar banners
-    const res = await request.get(`${FS}/banners`);
+    const res = await request.get(`${FS}/banners`, { headers: OWNER });
     if (res.ok()) {
       const body = await res.json();
       for (const doc of body.documents || []) {
-        await request.delete(`${FS}/banners/${doc.name.split('/').pop()}`);
+        await request.delete(`${FS}/banners/${doc.name.split('/').pop()}`, { headers: OWNER });
       }
     }
   });
 
   test('admin puede crear un banner con imagen', async ({ page, request }) => {
-    // Sembrar banner directo (el widget de Cloudinary no se puede automatizar fácil)
     await request.post(`${FS}/banners`, {
+      headers: OWNER,
       data: {
         fields: {
           titulo: { stringValue: 'Oferta Test' },
@@ -33,13 +38,13 @@ test.describe('🎨 Banners', () => {
     await loginRapido(page);
     await page.goto(`${ADMIN}/pages/banners.html`);
 
-    // Verificar que aparece en la tabla
     await expect(page.locator('#tablaBanners')).toContainText('Oferta Test', { timeout: 10000 });
     await expect(page.locator('#tablaBanners img')).toHaveAttribute('src', 'https://example.com/banner.jpg');
   });
 
   test('admin puede borrar un banner', async ({ page, request }) => {
     await request.post(`${FS}/banners`, {
+      headers: OWNER,
       data: {
         fields: {
           titulo: { stringValue: 'Banner a Borrar' },
@@ -53,21 +58,18 @@ test.describe('🎨 Banners', () => {
     await loginRapido(page);
     await page.goto(`${ADMIN}/pages/banners.html`);
 
-    // Aceptar el confirm automáticamente
     page.once('dialog', (d) => d.accept());
 
-    // Click en borrar
     await page.locator('#tablaBanners tr', { hasText: 'Banner a Borrar' })
       .locator('.btn-eliminar')
       .click();
 
-    // Verificar que desapareció
     await expect(page.locator('#tablaBanners')).not.toContainText('Banner a Borrar', { timeout: 10000 });
   });
 
   test('el catálogo muestra el banner en el carrusel', async ({ page, request }) => {
-    // Sembrar producto activo
     await request.post(`${FS}/productos`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Prod Banner' },
@@ -81,8 +83,8 @@ test.describe('🎨 Banners', () => {
       },
     });
 
-    // Sembrar banner
     await request.post(`${FS}/banners`, {
+      headers: OWNER,
       data: {
         fields: {
           titulo: { stringValue: 'Banner Visible' },
@@ -95,14 +97,13 @@ test.describe('🎨 Banners', () => {
 
     await page.goto(CLIENTE);
 
-    // Verificar que el carrusel tiene el banner
     await expect(page.locator('#carruselBanners img')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#carruselBanners img')).toHaveAttribute('src', 'https://example.com/banner.jpg');
   });
 
   test('click en banner con categoría filtra productos', async ({ page, request }) => {
-    // Sembrar productos en 2 categorías
     await request.post(`${FS}/productos`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Prod Electrónica' },
@@ -117,6 +118,7 @@ test.describe('🎨 Banners', () => {
     });
 
     await request.post(`${FS}/productos`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Prod Otros' },
@@ -130,8 +132,8 @@ test.describe('🎨 Banners', () => {
       },
     });
 
-    // Sembrar banner que filtra por Electrónica
     await request.post(`${FS}/banners`, {
+      headers: OWNER,
       data: {
         fields: {
           titulo: { stringValue: 'Banner Electrónica' },
@@ -145,10 +147,8 @@ test.describe('🎨 Banners', () => {
     await page.goto(CLIENTE);
     await expect(page.locator('#carruselBanners img')).toBeVisible({ timeout: 10000 });
 
-    // Click en el banner
     await page.locator('#carruselBanners img').click();
 
-    // Verificar que solo se ve Prod Electrónica
     await expect(page.locator('#productos')).toContainText('Prod Electrónica', { timeout: 5000 });
     await expect(page.locator('#productos')).not.toContainText('Prod Otros');
   });

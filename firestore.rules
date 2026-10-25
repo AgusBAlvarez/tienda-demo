@@ -2,45 +2,73 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ===== FUNCIÓN AUXILIAR =====
+    // Solo la cuenta admin de la demo puede escribir
     function esAdmin() {
       return request.auth != null
-        && request.auth.token.email in [
-          'admin@tienda-demo.com'
-        ];
+        && request.auth.token.email == 'admin@tienda-demo.com';
     }
 
-    match /productos/{id} {
-      allow read: if resource.data.estado == 'activo' || esAdmin();
+     // ===== PRODUCTOS =====
+     match /productos/{id} {
+       // Público: solo activos. Admin: todos (incluye borradores e inactivos)
+       allow read: if resource.data.estado == 'activo' || esAdmin();
       allow write: if esAdmin();
-    }
-
-    match /categorias/{id} {
-      allow read: if true;
+      allow write: if esAdmin()
+        // fotoUrl opcional (puede ser vacío si no se subió foto aún)
+        && (
+          !('fotoUrl' in request.resource.data)
+          || request.resource.data.fotoUrl == ''
+          || (
+            request.resource.data.fotoUrl is string
+            && request.resource.data.fotoUrl.matches('^https://res\\.cloudinary\\.com/')
+          )
+        );
+     }
+ 
+     // ===== CATEGORÍAS =====
+     match /categorias/{id} {
+       allow read: if true;
+       allow write: if esAdmin();
+     }
+ 
+     // ===== BANNERS =====
+     match /banners/{id} {
+       allow read: if true;
       allow write: if esAdmin();
-    }
+      allow write: if esAdmin()
+        && request.resource.data.fotoUrl is string
+        && request.resource.data.fotoUrl.matches('^https://res\\.cloudinary\\.com/');
+     }
 
-    match /banners/{id} {
-      allow read: if true;
-      allow write: if esAdmin();
-    }
-
+    // ===== PEDIDOS =====
     match /pedidos/{id} {
-      allow create: if request.resource.data.keys().hasOnly(['codigo', 'fecha', 'items', 'total', 'estado'])
+      allow create: if
+        // Solo estos campos, ni más ni menos (evita datos basura o faltantes)
+        request.resource.data.keys().hasOnly(['codigo', 'fecha', 'items', 'total', 'estado'])
         && request.resource.data.keys().hasAll(['codigo', 'fecha', 'items', 'total', 'estado'])
+        // El código es texto corto y es el ID del documento:
+        // garantiza que sea único y que nadie copie el código de otro pedido
         && request.resource.data.codigo is string
         && request.resource.data.codigo.size() >= 4
         && request.resource.data.codigo.size() <= 10
         && request.resource.data.codigo == id
+        // Siempre nace pendiente
         && request.resource.data.estado == 'pendiente'
+        // La fecha la pone el servidor, no el cliente
         && request.resource.data.fecha == request.time
+        // Lista de items de tamaño razonable
         && request.resource.data.items is list
         && request.resource.data.items.size() > 0
         && request.resource.data.items.size() <= 50
+        // Total numérico y no negativo
         && request.resource.data.total is number
         && request.resource.data.total >= 0;
+      // Solo el admin lee, confirma o borra pedidos
       allow read, update, delete: if esAdmin();
     }
 
+    // ===== VENTAS =====
     match /ventas/{id} {
       allow read, write: if esAdmin();
     }

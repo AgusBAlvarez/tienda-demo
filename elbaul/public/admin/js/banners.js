@@ -3,7 +3,7 @@ import { db } from "../../shared/firebase-config.js";
 import { 
   collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp, query, where 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { protegerPagina, configurarLogout } from "./auth-guard.js";
+import { protegerPagina, configurarLogout, configurarMenuHamburguesa } from "./auth-guard.js";
 import { esc } from "../../shared/utils.js";
 
 /* ===== CLOUDINARY ===== */
@@ -28,6 +28,7 @@ protegerPagina(async () => {
   await cargarBanners();
 });
 configurarLogout();
+configurarMenuHamburguesa(); 
 
 /* ===== TOAST ===== */
 let toastTimeout;

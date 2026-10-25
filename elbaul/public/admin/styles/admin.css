@@ -13,6 +13,17 @@ body.admin-page {
   color: #3a2e26;
 }
 
+/* ===== EN COMPU: Layout Fijo ===== */
+@media (min-width: 769px) {
+  body.admin-page {
+    height: 100vh;
+    overflow: hidden;
+  }
+  .admin-main {
+    overflow-y: auto;
+  }
+}
+
 /* ===== SIDEBAR ===== */
 .admin-sidebar {
   grid-area: sidebar;
@@ -100,9 +111,10 @@ body.admin-page {
 
 /* ===== MAIN ===== */
 .admin-main {
-  grid-area: main;
-  padding: 2rem;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
 }
 
 .admin-main h1 {
@@ -168,6 +180,7 @@ body.admin-page {
 .badge.activo    { background: #d4edda; color: #155724; }
 .badge.borrador  { background: #fff3cd; color: #856404; }
 .badge.inactivo  { background: #f8d7da; color: #721c24; }
+.badge.anulada   { background: #f8d7da; color: #721c24; }
 
 /* ===== BOTÓN PRIMARIO ===== */
 .btn-primary {
@@ -383,6 +396,17 @@ body.admin-page {
   color: white;
 }
 
+.btn-estado:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-estado:disabled:hover {
+  background: none;
+  color: #7a6a5f;
+  border-color: #e0d5cc;
+}
+
 /* ===== SUBIDA DE FOTO ===== */
 .foto-uploader {
   display: flex;
@@ -422,17 +446,6 @@ body.admin-page {
 .foto-acciones .btn-secundario {
   padding: 0.5rem 0.9rem;
   font-size: 0.8rem;
-}
-
-.btn-estado:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-estado:disabled:hover {
-  background: none;
-  color: #7a6a5f;
-  border-color: #e0d5cc;
 }
 
 /* ===== TOAST ===== */
@@ -946,6 +959,7 @@ body.admin-page {
   color: #3a2e26;
   text-transform: capitalize;
 }
+
 /* ===== DASHBOARD ===== */
 .dashboard-metrica {
   background: white;
@@ -995,6 +1009,7 @@ body.admin-page {
 .stock-bajo-item .stock.ok {
   color: #2e7d32;
 }
+
 /* ===== ÚLTIMAS VENTAS ===== */
 .ultima-venta {
   display: flex;
@@ -1179,11 +1194,6 @@ body.admin-page {
 }
 
 /* ===== ESTADO ANULADA ===== */
-.badge.anulada {
-  background: #f8d7da;
-  color: #721c24;
-}
-
 .fila-anulada {
   opacity: 0.6;
 }
@@ -1335,4 +1345,127 @@ body.admin-page {
 
 .btn-primary i {
   margin-right: 0.2rem;
+}
+
+/* ===== RESPONSIVE ADMIN ===== */
+
+/* Botón hamburguesa oculto por defecto (solo visible en celular) */
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #C3977E;
+  cursor: pointer;
+  padding: 0.3rem;
+}
+
+.menu-toggle i {
+  font-size: 1.6rem;
+  color: #C3977E;
+}
+
+/* Overlay para oscurecer el fondo */
+.admin-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 90;
+}
+
+.admin-overlay.active {
+  display: block;
+}
+
+/* En celular */
+@media (max-width: 768px) {
+  body.admin-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow: auto;
+  }
+
+  .admin-main {
+    flex: 1;
+    padding: 1rem;
+  }
+
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 260px;
+    height: 100vh;
+    z-index: 100;
+    transition: left 0.3s ease;
+  }
+
+  .admin-sidebar.active {
+    left: 0;
+  }
+
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-header {
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+
+  .admin-header .user {
+    font-size: 0.75rem;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tabla-productos {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .panel-lateral {
+    width: 100%;
+    right: -100%;
+  }
+
+  .header-con-accion {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+}
+
+/* ===== FOOTER ADMIN ===== */
+.admin-footer {
+  text-align: center;
+  padding: 1rem 2rem;
+  font-size: 0.75rem;
+  color: #7a6a5f;
+  border-top: 1px solid #eee;
+  margin-top: auto;
+}
+
+.admin-footer a {
+  color: #C3977E;
+  text-decoration: underline;
+}
+
+.admin-footer a:hover {
+  color: #a87d64;
+}
+
+/* En celular, ajustamos el padding */
+@media (max-width: 768px) {
+  .admin-footer {
+    padding: 1rem;
+    font-size: 0.7rem;
+  }
 }

@@ -29,6 +29,7 @@
 
   <!-- ===== HEADER ===== -->
   <header class="admin-header">
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú"><i class="bi bi-list"></i></button>
     <span class="user">Conectada como <strong id="userEmail"></strong></span>
     <button class="btn-logout" id="logoutBtn"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</button>
   </header>
@@ -59,6 +60,13 @@
         </tr>
       </tbody>
     </table>
+    <footer class="admin-footer">
+        <p>
+            Demo de portfolio · Desarrollado por <strong>Agustina Belén Alvarez</strong>
+            · <a href="https://linkedin.com/in/agustinabelenalvarez" target="_blank">LinkedIn</a>
+            · <a href="https://github.com/AgusBAlvarez/el-baul-de-maribel" target="_blank">GitHub</a>
+        </p>
+    </footer>
   </main>
 
     <!-- ===== PANEL LATERAL (formulario producto) ===== -->
@@ -104,18 +112,23 @@
 
         <div class="form-fila">
           <div class="form-grupo">
-            <label for="precio">Precio *</label>
+            <label for="precio">Precio Original *</label>
             <input type="number" id="precio" min="0" required>
           </div>
+          <div class="form-grupo">
+            <label for="precioOferta">Precio Oferta (opcional)</label>
+            <input type="number" id="precioOferta" min="0" placeholder="Vacío = sin oferta">
+          </div>
+        </div>
+        <div class="form-fila">
           <div class="form-grupo">
             <label for="stock">Stock *</label>
             <input type="number" id="stock" min="0" required>
           </div>
-        </div>
-
-        <div class="form-grupo">
-          <label for="stockMinimo">Stock mínimo</label>
-          <input type="number" id="stockMinimo" min="0" value="3">
+          <div class="form-grupo">
+            <label for="stockMinimo">Stock mínimo</label>
+            <input type="number" id="stockMinimo" min="0" value="3">
+          </div>
         </div>
 
         <p class="form-error" id="formError"></p>

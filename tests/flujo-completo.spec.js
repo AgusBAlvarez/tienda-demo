@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { loginRapido } from './helpers.js';
+import { loginRapido, asegurarUsuarioAdmin } from './helpers.js';
 
 const FS = 'http://127.0.0.1:8080/v1/projects/tienda-demo-5c115/databases/(default)/documents';
+const OWNER = { Authorization: 'Bearer owner' };
+
+test.beforeAll(async ({ request }) => {
+  await asegurarUsuarioAdmin(request);
+});
 
 /* ═══════════════════════════════════════════
    SECCIÓN 1: AUTENTICACIÓN
@@ -27,14 +32,14 @@ test.describe('🔐 Sección 1: Autenticación', () => {
    ═══════════════════════════════════════════ */
 test.describe('📂 Sección 2: Categorías', () => {
   test.beforeEach(async ({ request }) => {
-    const res = await request.get(`${FS}/categorias`);
+    const res = await request.get(`${FS}/categorias`, { headers: OWNER });
     if (!res.ok()) return;
     const body = await res.json();
     for (const doc of body.documents || []) {
       const nombre = doc.fields?.nombre?.stringValue;
       if (nombre === 'Otros' || nombre === 'Electrónica') continue;
       const id = doc.name.split('/').pop();
-      await request.delete(`${FS}/categorias/${id}`);
+      await request.delete(`${FS}/categorias/${id}`, { headers: OWNER });
     }
   });
 
@@ -56,11 +61,10 @@ test.describe('📂 Sección 2: Categorías', () => {
     await page.click('#btnGuardar');
     await expect(page.locator('#tablaCategorias')).toContainText(`${nombre} editada`, { timeout: 10000 });
 
-    // Borrar con modal propio (ya no usa confirm nativo)
     await page.locator('#tablaCategorias tr', { hasText: `${nombre} editada` })
       .locator('.btn-eliminar')
       .click();
-    await page.click('#btnConfirmarBorrado');  // ← nuevo
+    await page.click('#btnConfirmarBorrado');
     await expect(page.locator('#tablaCategorias')).not.toContainText(`${nombre} editada`, { timeout: 10000 });
   });
 
@@ -121,16 +125,17 @@ test.describe('📦 Sección 3: Productos', () => {
    ═══════════════════════════════════════════ */
 test.describe('💰 Sección 4: Registrar Venta', () => {
   test.beforeEach(async ({ request }) => {
-    const res = await request.get(`${FS}/productos`);
+    const res = await request.get(`${FS}/productos`, { headers: OWNER });
     if (res.ok()) {
       const body = await res.json();
       for (const doc of body.documents || []) {
         const id = doc.name.split('/').pop();
-        await request.delete(`${FS}/productos/${id}`);
+        await request.delete(`${FS}/productos/${id}`, { headers: OWNER });
       }
     }
 
     await request.post(`${FS}/productos`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Producto de Prueba Playwright' },
@@ -186,16 +191,17 @@ test.describe('💰 Sección 4: Registrar Venta', () => {
    ═══════════════════════════════════════════ */
 test.describe('🧾 Sección 5: Historial', () => {
   test.beforeEach(async ({ request }) => {
-    const res = await request.get(`${FS}/ventas`);
+    const res = await request.get(`${FS}/ventas`, { headers: OWNER });
     if (res.ok()) {
       const body = await res.json();
       for (const doc of body.documents || []) {
         const id = doc.name.split('/').pop();
-        await request.delete(`${FS}/ventas/${id}`);
+        await request.delete(`${FS}/ventas/${id}`, { headers: OWNER });
       }
     }
 
     await request.post(`${FS}/ventas`, {
+      headers: OWNER,
       data: {
         fields: {
           fecha: { timestampValue: new Date().toISOString() },
@@ -252,98 +258,84 @@ test.describe('🚫 Sección 6: Anular Venta', () => {
   const VENTA_ID = 'venta-anular-test';
 
   test.beforeEach(async ({ request }) => {
-    // Limpiar
-    const ventasRes = await request.get(`${FS}/ventas`);
+    const ventasRes = await request.get(`${FS}/ventas`, { headers: OWNER });
     if (ventasRes.ok()) {
       const body = await ventasRes.json();
       for (const doc of body.documents || []) {
-        await request.delete(`${FS}/ventas/${doc.name.split('/').pop()}`);
+        await request.delete(`${FS}/ventas/${doc.name.split('/').pop()}`, { headers: OWNER });
       }
     }
-    await request.delete(`${FS}/productos/${PROD_ID}`);
+    await request.delete(`${FS}/productos/${PROD_ID}`, { headers: OWNER });
 
-    // Sembrar producto con stock bajo (para verificar devolución)
-    await request.post(
-      `${FS}/productos?documentId=${PROD_ID}`,
-      {
-        data: {
-          fields: {
-            nombre: { stringValue: 'Prod Anular' },
-            precio: { integerValue: '1000' },
-            stock: { integerValue: '2' },
-            stockMinimo: { integerValue: '1' },
-            estado: { stringValue: 'activo' },
-            categoria: { stringValue: 'Otros' },
-            fotoUrl: { stringValue: 'https://example.com/x.jpg' },
-            descripcion: { stringValue: '' },
-          },
+    await request.post(`${FS}/productos?documentId=${PROD_ID}`, {
+      headers: OWNER,
+      data: {
+        fields: {
+          nombre: { stringValue: 'Prod Anular' },
+          precio: { integerValue: '1000' },
+          stock: { integerValue: '2' },
+          stockMinimo: { integerValue: '1' },
+          estado: { stringValue: 'activo' },
+          categoria: { stringValue: 'Otros' },
+          fotoUrl: { stringValue: 'https://example.com/x.jpg' },
+          descripcion: { stringValue: '' },
         },
-      }
-    );
+      },
+    });
 
-    // Sembrar venta con ID fijo
-    await request.post(
-      `${FS}/ventas?documentId=${VENTA_ID}`,
-      {
-        data: {
-          fields: {
-            fecha: { timestampValue: new Date().toISOString() },
-            total: { integerValue: '2000' },
-            metodoPago: { stringValue: 'efectivo' },
-            cliente: { stringValue: 'Cliente Anular' },
-            registradoPor: { stringValue: 'admin@tienda-demo.com' },
-            anulada: { booleanValue: false },
-            items: {
-              arrayValue: {
-                values: [{
-                  mapValue: {
-                    fields: {
-                      productoId: { stringValue: PROD_ID },
-                      nombre: { stringValue: 'Prod Anular' },
-                      cantidad: { integerValue: '2' },
-                      precioCongelado: { integerValue: '1000' },
-                    },
+    await request.post(`${FS}/ventas?documentId=${VENTA_ID}`, {
+      headers: OWNER,
+      data: {
+        fields: {
+          fecha: { timestampValue: new Date().toISOString() },
+          total: { integerValue: '2000' },
+          metodoPago: { stringValue: 'efectivo' },
+          cliente: { stringValue: 'Cliente Anular' },
+          registradoPor: { stringValue: 'admin@tienda-demo.com' },
+          anulada: { booleanValue: false },
+          items: {
+            arrayValue: {
+              values: [{
+                mapValue: {
+                  fields: {
+                    productoId: { stringValue: PROD_ID },
+                    nombre: { stringValue: 'Prod Anular' },
+                    cantidad: { integerValue: '2' },
+                    precioCongelado: { integerValue: '1000' },
                   },
-                }],
-              },
+                },
+              }],
             },
           },
         },
-      }
-    );
+      },
+    });
   });
 
   test('Anular venta devuelve stock y marca como anulada', async ({ page, request }) => {
     await loginRapido(page);
     await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/historial.html');
 
-    // Abrir detalle de la venta
     await expect(page.locator('#tablaHistorial')).toContainText('Cliente Anular', { timeout: 10000 });
     await page.locator('#tablaHistorial tr', { hasText: 'Cliente Anular' }).click();
     await expect(page.locator('#detalleModal')).toHaveClass(/active/);
 
-    // Abrir modal de anulación
     await page.click('#btnAnularVenta');
-    await expect(page.locator('#anularModal')).toHaveClass(/active/);  // ← esperar al modal, no al toast
+    await expect(page.locator('#anularModal')).toHaveClass(/active/);
 
-    // Confirmar (por defecto devuelve todas las unidades)
     await page.click('#btnConfirmarAnular');
 
-    // AHORA sí, esperar el toast de confirmación
     await expect(page.locator('#toast')).toContainText('Venta anulada correctamente', { timeout: 10000 });
 
-    // Verificar en la tabla que la fila ahora dice "Anulada"
     await expect(
       page.locator('#tablaHistorial tr', { hasText: 'Cliente Anular' })
     ).toContainText('Anulada', { timeout: 10000 });
 
-    // Verificar stock devuelto en Firestore (2 + 2 = 4)
-    const prodRes = await request.get(`${FS}/productos/${PROD_ID}`);
+    const prodRes = await request.get(`${FS}/productos/${PROD_ID}`, { headers: OWNER });
     const prod = await prodRes.json();
     expect(prod.fields.stock.integerValue).toBe('4');
 
-    // Verificar que la venta quedó marcada
-    const ventaRes = await request.get(`${FS}/ventas/${VENTA_ID}`);
+    const ventaRes = await request.get(`${FS}/ventas/${VENTA_ID}`, { headers: OWNER });
     const venta = await ventaRes.json();
     expect(venta.fields.anulada.booleanValue).toBe(true);
   });
@@ -354,17 +346,16 @@ test.describe('🚫 Sección 6: Anular Venta', () => {
    ═══════════════════════════════════════════ */
 test.describe('⚠️ Sección 7: Dashboard - Stock Bajo', () => {
   test.beforeEach(async ({ request }) => {
-    // Limpiar productos
-    const res = await request.get(`${FS}/productos`);
+    const res = await request.get(`${FS}/productos`, { headers: OWNER });
     if (res.ok()) {
       const body = await res.json();
       for (const doc of body.documents || []) {
-        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`);
+        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`, { headers: OWNER });
       }
     }
 
-    // Producto CON stock bajo (2 <= 3) → debe aparecer
     await request.post(`${FS}/productos`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Prod Stock Bajo' },
@@ -379,8 +370,8 @@ test.describe('⚠️ Sección 7: Dashboard - Stock Bajo', () => {
       },
     });
 
-    // Producto SIN stock bajo (50 > 3) → NO debe aparecer
     await request.post(`${FS}/productos`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Prod Stock OK' },
@@ -398,7 +389,6 @@ test.describe('⚠️ Sección 7: Dashboard - Stock Bajo', () => {
 
   test('Muestra solo productos con stock bajo', async ({ page }) => {
     await loginRapido(page);
-    // loginRapido ya te deja en dashboard.html, no hace falta goto
 
     const contenedor = page.locator('#listaStockBajo');
     await expect(contenedor).toContainText('Prod Stock Bajo', { timeout: 10000 });
@@ -407,31 +397,28 @@ test.describe('⚠️ Sección 7: Dashboard - Stock Bajo', () => {
 });
 
 /* ═══════════════════════════════════════════
-   SECCIÓN 8: BUGS CONOCIDOS (test que demuestran el bug)
+   SECCIÓN 8: REGRESIONES
    ═══════════════════════════════════════════ */
 test.describe('🐛 Sección 8: Regresiones', () => {
   test('Producto nuevo aparece en búsqueda de venta sin recargar', async ({ page, request }) => {
-    // Limpiar productos
-    const res = await request.get(`${FS}/productos`);
+    const res = await request.get(`${FS}/productos`, { headers: OWNER });
     if (res.ok()) {
       const body = await res.json();
       for (const doc of body.documents || []) {
-        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`);
+        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`, { headers: OWNER });
       }
     }
 
     await loginRapido(page);
 
-    // 1. Ir a ventas.html (esto carga productosCache = [])
     await page.goto('http://127.0.0.1:5500/elbaul/public/admin/pages/ventas.html');
 
-    // 2. Abrir el modal de búsqueda → cachea [] (vacío)
     await page.click('#btnAgregarManual');
     await page.fill('#buscarProductoInput', 'Nada');
     await page.click('#btnCerrarBuscar');
 
-    // 3. Sembrar un producto DESPUÉS de que se cacheó
     await request.post(`${FS}/productos`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Producto Nuevo' },
@@ -446,11 +433,9 @@ test.describe('🐛 Sección 8: Regresiones', () => {
       },
     });
 
-    // 4. Abrir el modal de nuevo → buscar "Producto Nuevo"
     await page.click('#btnAgregarManual');
     await page.fill('#buscarProductoInput', 'Producto Nuevo');
-      
-    // 🐛 ESTE EXPECT FALLA POR EL BUG: el caché no se refrescó
+
     await expect(page.locator('.buscar-resultado').first()).toBeVisible({ timeout: 5000 });
   });
 });

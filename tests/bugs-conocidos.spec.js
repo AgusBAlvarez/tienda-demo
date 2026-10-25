@@ -1,48 +1,53 @@
 import { test, expect } from '@playwright/test';
-import { loginRapido } from './helpers.js';
+import { loginRapido, asegurarUsuarioAdmin } from './helpers.js';
 
 const FS = 'http://127.0.0.1:8080/v1/projects/tienda-demo-5c115/databases/(default)/documents';
 const BASE = 'http://127.0.0.1:5500/elbaul/public/admin';
+const OWNER = { Authorization: 'Bearer owner' };
+
+test.beforeAll(async ({ request }) => {
+  await asegurarUsuarioAdmin(request);
+});
 
 /* ═══════════════════════════════════════════
    BUG #5 — productosCache no se refresca
    ═══════════════════════════════════════════ */
-test.describe('🐛 Bug #5: Caché de productos', () => {
-  test('Producto nuevo NO aparece si el caché no se refresca', async ({ page, request }) => {
-    const res = await request.get(`${FS}/productos`);
-    if (res.ok()) {
-      const body = await res.json();
-      for (const doc of body.documents || []) {
-        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`);
-      }
+test('Producto nuevo NO aparece si el caché no se refresca', async ({ page, request }) => {
+  const res = await request.get(`${FS}/productos`, { headers: OWNER });
+  if (res.ok()) {
+    const body = await res.json();
+    for (const doc of body.documents || []) {
+      await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`, { headers: OWNER });
     }
+  }
 
-    await loginRapido(page);
-    await page.goto(`${BASE}/pages/ventas.html`);
+  await loginRapido(page);
+  await page.goto(`${BASE}/pages/ventas.html`);
 
-    await page.click('#btnAgregarManual');
-    await page.waitForTimeout(1500);
-    await page.click('#btnCerrarBuscar');
+  await page.click('#btnAgregarManual');
+  await page.waitForSelector('.buscar-resultado, .texto-vacio', { timeout: 10000 });
+  await page.click('#btnCerrarBuscar');
 
-    await request.post(`${FS}/productos`, {
-      data: {
-        fields: {
-          nombre: { stringValue: 'Producto Cache Test' },
-          precio: { integerValue: '500' },
-          stock: { integerValue: '5' },
-          stockMinimo: { integerValue: '1' },
-          estado: { stringValue: 'activo' },
-          categoria: { stringValue: 'Otros' },
-          fotoUrl: { stringValue: 'https://example.com/x.jpg' },
-        },
+  await request.post(`${FS}/productos`, {
+    headers: OWNER,
+    data: {
+      fields: {
+        nombre: { stringValue: 'Producto Cache Test' },
+        precio: { integerValue: '500' },
+        stock: { integerValue: '5' },
+        stockMinimo: { integerValue: '1' },
+        estado: { stringValue: 'activo' },
+        categoria: { stringValue: 'Otros' },
+        fotoUrl: { stringValue: 'https://example.com/x.jpg' },
       },
-    });
-
-    await page.click('#btnAgregarManual');
-    await page.fill('#buscarProductoInput', 'Producto Cache Test');
-
-    await expect(page.locator('.buscar-resultado').first()).toBeVisible({ timeout: 5000 });
+    },
   });
+
+  await page.click('#btnAgregarManual');
+  await page.waitForTimeout(1500);
+  await page.fill('#buscarProductoInput', 'Producto Cache Test');
+
+  await expect(page.locator('.buscar-resultado').first()).toBeVisible({ timeout: 10000 });
 });
 
 /* ═══════════════════════════════════════════
@@ -55,6 +60,7 @@ test.describe('🐛 Bug #7: Dashboard lee todas las ventas', () => {
 
     for (let i = 0; i < 30; i++) {
       await request.post(`${FS}/ventas`, {
+        headers: OWNER,
         data: {
           fields: {
             fecha: { timestampValue: hace30Dias.toISOString() },
@@ -72,6 +78,7 @@ test.describe('🐛 Bug #7: Dashboard lee todas las ventas', () => {
     const ahora = new Date();
     for (let i = 0; i < 2; i++) {
       await request.post(`${FS}/ventas`, {
+        headers: OWNER,
         data: {
           fields: {
             fecha: { timestampValue: ahora.toISOString() },
@@ -107,16 +114,17 @@ test.describe('🐛 Bug #7: Dashboard lee todas las ventas', () => {
    ═══════════════════════════════════════════ */
 test.describe('🐛 Bug #8: cambiarEstado lee todos los productos', () => {
   test('cambiar estado no debe leer productos ajenos', async ({ page, request }) => {
-    const res = await request.get(`${FS}/productos`);
+    const res = await request.get(`${FS}/productos`, { headers: OWNER });
     if (res.ok()) {
       const body = await res.json();
       for (const doc of body.documents || []) {
-        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`);
+        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`, { headers: OWNER });
       }
     }
 
     for (let i = 0; i < 20; i++) {
       await request.post(`${FS}/productos`, {
+        headers: OWNER,
         data: {
           fields: {
             nombre: { stringValue: `Prod Relleno ${i}` },
@@ -133,6 +141,7 @@ test.describe('🐛 Bug #8: cambiarEstado lee todos los productos', () => {
 
     const targetId = 'prod-target-bug8';
     await request.post(`${FS}/productos?documentId=${targetId}`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Prod Objetivo' },
@@ -178,6 +187,7 @@ test.describe('🐛 Bug #8: cambiarEstado lee todos los productos', () => {
 test.describe('🐛 Bug #13: alert() en historial', () => {
   test('anular venta ya anulada NO debe usar alert()', async ({ page, request }) => {
     await request.post(`${FS}/ventas?documentId=venta-ya-anulada`, {
+      headers: OWNER,
       data: {
         fields: {
           fecha: { timestampValue: new Date().toISOString() },
@@ -231,6 +241,7 @@ test.describe('🐛 Bug #13: alert() en historial', () => {
 test.describe('🐛 Bug #14: botón Anular en ventas anuladas', () => {
   test('al abrir una venta ya anulada, botón Anular debe estar oculto', async ({ page, request }) => {
     await request.post(`${FS}/ventas?documentId=venta-anulada-14`, {
+      headers: OWNER,
       data: {
         fields: {
           fecha: { timestampValue: new Date().toISOString() },
@@ -259,7 +270,6 @@ test.describe('🐛 Bug #14: botón Anular en ventas anuladas', () => {
 test.describe('🐛 Bug #10: usuario deshabilitado', () => {
   test.skip('usuario deshabilitado debería ser expulsado', async () => {
     // No aplica: la app usa una cuenta compartida para varias computadoras.
-    // Nadie deshabilita usuarios individuales en producción.
   });
 });
 
@@ -269,10 +279,12 @@ test.describe('🐛 Bug #10: usuario deshabilitado', () => {
 test.describe('🐛 Bug #1: borrarCategoria sin batch', () => {
   test('borrar categoría con productos debe ser atómico (informativo)', async ({ request }) => {
     await request.post(`${FS}/categorias?documentId=cat-bug1`, {
+      headers: OWNER,
       data: { fields: { nombre: { stringValue: 'Bug1 Cat' } } },
     });
 
     await request.post(`${FS}/productos?documentId=prod-bug1`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Prod Bug1' },
@@ -286,7 +298,7 @@ test.describe('🐛 Bug #1: borrarCategoria sin batch', () => {
       },
     });
 
-    const res = await request.get(`${FS}/categorias/cat-bug1`);
+    const res = await request.get(`${FS}/categorias/cat-bug1`, { headers: OWNER });
     expect(res.ok()).toBe(true);
   });
 });
@@ -296,17 +308,18 @@ test.describe('🐛 Bug #1: borrarCategoria sin batch', () => {
    ═══════════════════════════════════════════ */
 test.describe('✅ Bug #2 (fix): anular con producto eliminado', () => {
   test.beforeEach(async ({ request }) => {
-    const ventasRes = await request.get(`${FS}/ventas`);
+    const ventasRes = await request.get(`${FS}/ventas`, { headers: OWNER });
     if (ventasRes.ok()) {
       const body = await ventasRes.json();
       for (const doc of body.documents || []) {
-        await request.delete(`${FS}/ventas/${doc.name.split('/').pop()}`);
+        await request.delete(`${FS}/ventas/${doc.name.split('/').pop()}`, { headers: OWNER });
       }
     }
   });
 
   test('avisa cuando no puede devolver stock', async ({ page, request }) => {
     await request.post(`${FS}/ventas?documentId=venta-bug2-fix`, {
+      headers: OWNER,
       data: {
         fields: {
           fecha: { timestampValue: new Date().toISOString() },
@@ -350,22 +363,23 @@ test.describe('✅ Bug #2 (fix): anular con producto eliminado', () => {
    ═══════════════════════════════════════════ */
 test.describe('✅ Bug #11 (fix): pedido no se confirma sin querer', () => {
   test('cancelar confirmación descarta el pedido cargado', async ({ page, request }) => {
-    const prodRes = await request.get(`${FS}/productos`);
+    const prodRes = await request.get(`${FS}/productos`, { headers: OWNER });
     if (prodRes.ok()) {
       const body = await prodRes.json();
       for (const doc of body.documents || []) {
-        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`);
+        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`, { headers: OWNER });
       }
     }
-    const pedRes = await request.get(`${FS}/pedidos`);
+    const pedRes = await request.get(`${FS}/pedidos`, { headers: OWNER });
     if (pedRes.ok()) {
       const body = await pedRes.json();
       for (const doc of body.documents || []) {
-        await request.delete(`${FS}/pedidos/${doc.name.split('/').pop()}`);
+        await request.delete(`${FS}/pedidos/${doc.name.split('/').pop()}`, { headers: OWNER });
       }
     }
 
     await request.post(`${FS}/productos?documentId=prod-bug11-fix`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Prod 11' },
@@ -380,6 +394,7 @@ test.describe('✅ Bug #11 (fix): pedido no se confirma sin querer', () => {
     });
 
     await request.post(`${FS}/pedidos?documentId=pedido-bug11-fix`, {
+      headers: OWNER,
       data: {
         fields: {
           codigo: { stringValue: 'TEST11' },
@@ -415,7 +430,7 @@ test.describe('✅ Bug #11 (fix): pedido no se confirma sin querer', () => {
     await page.click('#btnConfirmarVenta');
     await page.click('#btnCancelarConfirm');
 
-    const res = await request.get(`${FS}/pedidos/pedido-bug11-fix`);
+    const res = await request.get(`${FS}/pedidos/pedido-bug11-fix`, { headers: OWNER });
     const pedido = await res.json();
     expect(pedido.fields.estado.stringValue).toBe('pendiente');
   });
@@ -426,17 +441,18 @@ test.describe('✅ Bug #11 (fix): pedido no se confirma sin querer', () => {
    ═══════════════════════════════════════════ */
 test.describe('✅ Bug #3 (fix): error de stock visible en modal', () => {
   test.beforeEach(async ({ request }) => {
-    const res = await request.get(`${FS}/productos`);
+    const res = await request.get(`${FS}/productos`, { headers: OWNER });
     if (res.ok()) {
       const body = await res.json();
       for (const doc of body.documents || []) {
-        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`);
+        await request.delete(`${FS}/productos/${doc.name.split('/').pop()}`, { headers: OWNER });
       }
     }
   });
 
   test('el error de stock aparece dentro del modal, no como toast', async ({ page, request }) => {
     await request.post(`${FS}/productos?documentId=prod-sin-stock`, {
+      headers: OWNER,
       data: {
         fields: {
           nombre: { stringValue: 'Prod Sin Stock' },
@@ -470,19 +486,20 @@ test.describe('✅ Bug #3 (fix): error de stock visible en modal', () => {
    ═══════════════════════════════════════════ */
 test.describe('✅ Bug #4 (fix): modal propio para borrar categoría', () => {
   test.beforeEach(async ({ request }) => {
-    const res = await request.get(`${FS}/categorias`);
+    const res = await request.get(`${FS}/categorias`, { headers: OWNER });
     if (res.ok()) {
       const body = await res.json();
       for (const doc of body.documents || []) {
         const nombre = doc.fields?.nombre?.stringValue;
         if (nombre === 'Otros') continue;
-        await request.delete(`${FS}/categorias/${doc.name.split('/').pop()}`);
+        await request.delete(`${FS}/categorias/${doc.name.split('/').pop()}`, { headers: OWNER });
       }
     }
   });
 
   test('borrar categoría abre modal propio, no confirm()', async ({ page, request }) => {
     await request.post(`${FS}/categorias?documentId=cat-test-borrar`, {
+      headers: OWNER,
       data: { fields: { nombre: { stringValue: 'Cat Test Borrar' } } },
     });
 

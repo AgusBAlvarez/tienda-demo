@@ -7,6 +7,13 @@
   --text-light: #7a6a5f;
   --card-bg: #f5ede7;
   --border: #eee;
+  --alto-nav: 56px; /* ← NUEVO: altura del navbar en celular */
+}
+
+@media (min-width: 768px) {
+  :root {
+    --alto-nav: 68px;
+  }
 }
 
 /* ===== RESET ===== */
@@ -32,13 +39,18 @@ ul {
   list-style: none;
 }
 
-/* ===== NAVBAR ===== */
+/* ===== NAVBAR (fija) ===== */
 nav {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   padding: 0.7rem 5%;
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--bg);
+  height: var(--alto-nav); 
 }
 
 .logo {
@@ -101,7 +113,7 @@ nav {
   border-right: 1px solid var(--border);
   padding: 1.5rem;
   transition: left 0.3s ease;
-  z-index: 200;
+  z-index: 1000; /* Lo más alto de todo, para que nada lo tape */
 }
 
 .menu-lateral.active {
@@ -140,7 +152,7 @@ nav {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease;
-  z-index: 150;
+  z-index: 900; /* Tapa las categorías pero no el menú */
 }
 
 .overlay.active {
@@ -160,7 +172,7 @@ nav {
   border-radius: 12px;
 }
 
-/* ===== CATEGORÍAS ===== */
+/* ===== CATEGORÍAS (fijas) ===== */
 .categorias {
   display: flex;
   gap: 0.5rem;
@@ -169,6 +181,10 @@ nav {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  position: sticky;
+  top: calc(var(--alto-nav) - 1px);
+  z-index: 100; /* Debajo del menú (1000) y del navbar (200) */
+  box-shadow: 0 4px 6px -2px rgba(0,0,0,0.1); /* Sombra sutil para que se note */
 }
 
 .categorias::-webkit-scrollbar {
@@ -203,7 +219,9 @@ nav {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.8rem;
-  padding: 0 5% 2rem;
+  padding: 1.5rem 5% 2rem; 
+  position: relative;
+  z-index: 1; /* Al fondo, para que las categorías lo tapen al scrollear */
 }
 
 /* ===== FOOTER ===== */
@@ -277,14 +295,13 @@ footer {
 /* ===== CARRUSEL DE BANNERS ===== */
 .carrusel {
   width: 100%;
-  aspect-ratio: 3 / 1; /* Mantiene la proporción perfecta en celu y compu */
+  aspect-ratio: 3 / 1;
   position: relative;
   border-radius: 12px;
   overflow: hidden;
   background-color: #f5ede7;
 }
 
-/* En compu, limitamos el ancho para que no se vea gigante */
 @media (min-width: 768px) {
   .carrusel {
     max-width: 1100px;

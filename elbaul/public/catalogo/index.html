@@ -30,10 +30,7 @@
   <!-- ===== CARRUSEL DE BANNERS ===== -->
   <section class="banner">
     <div class="carrusel" id="carruselBanners">
-      <!-- Acá se cargan los banners dinámicamente -->
-      <div class="banner-img" style="display:flex; align-items:center; justify-content:center; color:#aaa;">
-        Cargando ofertas...
-      </div>
+      <p style="text-align:center; padding:1rem; color:#aaa;">Cargando ofertas...</p>
     </div>
   </section>
 
@@ -49,7 +46,26 @@
 
   <!-- ===== FOOTER ===== -->
   <footer>
-    <p>© 2026 Tienda Demo</p>
+    <div style="max-width: 800px; margin: 0 auto; padding: 2rem 5%;">
+      <p style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-light);">
+        Proyecto de demostración: los productos y precios son ficticios y no se realizan ventas reales.
+      </p>
+      <p style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--text);">
+        Diseño y desarrollo: <strong>Agustina Belén Alvarez</strong>
+      </p>
+      <p style="margin-bottom: 1rem; font-size: 0.85rem; display:flex; flex-wrap:wrap; justify-content:center; gap:1rem;">
+        <a href="https://linkedin.com/in/agustinabelenalvarez" target="_blank" style="color: var(--primary); text-decoration: underline; display:flex; align-items:center; gap:0.3rem;">
+          <i class="bi bi-linkedin"></i> LinkedIn
+        </a>
+        <a href="https://github.com/AgusBAlvarez/el-baul-de-maribel" target="_blank" style="color: var(--primary); text-decoration: underline; display:flex; align-items:center; gap:0.3rem;">
+          <i class="bi bi-github"></i> GitHub
+        </a>
+        <a href="/admin/" style="color: var(--primary); text-decoration: underline; display:flex; align-items:center; gap:0.3rem;">
+          <i class="bi bi-shield-lock"></i> Panel de administración
+        </a>
+      </p>
+      <p style="font-size: 0.8rem; color: var(--text-light);">© 2026 Tienda Demo</p>
+    </div>
   </footer>
 
   <!-- ===== MENÚ LATERAL ===== -->
@@ -68,7 +84,7 @@
         </ul>
       </li>
 
-      <li><a href="https://wa.me/5492616946182" target="_blank">Contacto</a></li>
+      <li><a href="https://wa.me/5490000000000" target="_blank">Contacto</a></li>
     </ul>
   </aside>
 
@@ -82,7 +98,9 @@
   <div class="modal-overlay" id="modalOverlay"></div>
 
   <div class="modal-producto" id="modalProducto">
-    <button class="modal-volver" id="modalVolver" aria-label="Volver"><i class="bi bi-arrow-left"></i></button>
+    <button class="modal-volver" id="modalVolver" aria-label="Volver">
+      <i class="bi bi-arrow-left"></i>
+    </button>
     <div class="modal-img" id="modalImg"></div>
     <div class="modal-body">
       <h2 id="modalNombre">Nombre</h2>
@@ -141,6 +159,11 @@
           <p>Tu código de pedido es:</p>
           <div class="codigo-grande" id="codigoPedido">#XXXX</div>
           <p class="pedido-instruccion">Enviá este mensaje por WhatsApp para coordinar el pago y la entrega.</p>
+          
+          <!-- Aviso de demo con ícono de Bootstrap -->
+          <p class="pedido-instruccion" style="margin-top:1rem; font-size:0.8rem; color:#999; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+            <i class="bi bi-exclamation-triangle"></i> Este es un proyecto de demostración. Los pedidos no son reales.
+          </p>
         </div>
       </div>
       <div class="carrito-footer">

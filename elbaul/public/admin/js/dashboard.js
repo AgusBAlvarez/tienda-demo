@@ -3,7 +3,7 @@ import { db } from "../../shared/firebase-config.js";
 import {
   collection, getDocs, query, where, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { protegerPagina, configurarLogout } from "./auth-guard.js";
+import { protegerPagina, configurarLogout, configurarMenuHamburguesa } from "./auth-guard.js";
 import { esc } from "../../shared/utils.js";
 
 /* ===== PROTECCIÓN ===== */
@@ -14,6 +14,7 @@ protegerPagina(async () => {
   await cargarResumenDia();
 });
 configurarLogout();
+configurarMenuHamburguesa(); 
 
 /* ===== CARGAR STOCK BAJO ===== */
 async function cargarStockBajo() {
@@ -91,7 +92,7 @@ async function cargarUltimasVentas() {
         : "—";
 
       const resumen = (v.items || [])
-        .map(item => `${item.cantidad}x ${item.nombre}`)
+        .map(item => `${item.cantidad}x ${esc(item.nombre)}`) // ✅ esc() por item
         .join(", ");
 
       div.innerHTML = `
